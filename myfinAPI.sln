@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30523.141
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "myfinAPI", "myfinAPI\myfinAPI.csproj", "{CAECD92C-C559-41F0-A6DF-158CD0E99ECE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CAECD92C-C559-41F0-A6DF-158CD0E99ECE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAECD92C-C559-41F0-A6DF-158CD0E99ECE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAECD92C-C559-41F0-A6DF-158CD0E99ECE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAECD92C-C559-41F0-A6DF-158CD0E99ECE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FBAC1CA2-E568-4ED3-B34D-8F733EEA1D61}
+	EndGlobalSection
+EndGlobal
