@@ -98,5 +98,29 @@ namespace myfinAPI.Data
 			return true;
 
 		}
+
+		public IList<DashboardDetail> GetDashboardDetail()
+		{
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
+			using var command = new MySqlCommand(@"SELECT si.shortname, SUM(st.qty) 
+												FROM myfin.sharetransaction as st 
+												inner join myfin.shareinfo as si
+												on si.idshareinfo = st.shareid
+												group by st.shareid; ", connection);
+			using var reader = command.ExecuteReader();
+			IList<portfolio> equityList = new List<portfolio>();
+			while (reader.Read())
+			{
+				equityList.Add(new portfolio()
+				{
+					equityname = reader.GetValue(0).ToString(),
+					avgprice = Convert.ToDouble(reader.GetValue(1).ToString())
+
+				});
+			}
+			return equityList;
+		}
 	}
 }
