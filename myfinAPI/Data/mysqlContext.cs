@@ -41,8 +41,8 @@ namespace myfinAPI.Data
 			using var command = new MySqlCommand(@"SELECT si.shortname, SUM(st.qty) 
 												FROM myfin.sharetransaction as st 
 												inner join myfin.shareinfo as si
-												on si.idshareinfo = st.shareid
-												group by st.shareid; ", connection);
+												on si.idshareinfo = st.assetid
+												group by st.assetid; ", connection);
 			using var reader = command.ExecuteReader();
 			IList<portfolio> equityList = new List<portfolio>();
 			while (reader.Read())
@@ -50,7 +50,7 @@ namespace myfinAPI.Data
 				equityList.Add(new portfolio()
 				{
 					equityname= reader.GetValue(0).ToString(),
-					 avgprice = Convert.ToDouble(reader.GetValue(1).ToString())
+					 avgprice = Convert.ToDouble(reader.GetValue(1))
 					
 				});
 			}
@@ -65,14 +65,14 @@ namespace myfinAPI.Data
 			using var command = new MySqlCommand(@"SELECT *
 												FROM myfin.sharetransaction as st
 												join myfin.shareinfo si
-												on st.shareId=si.idShareInfo;", connection);
+												on st.assetid=si.idShareInfo;", connection);
 			using var reader = command.ExecuteReader();
 			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
 			while (reader.Read())
 			{
 				transactionList.Add(new EquityTransaction()
 				{
-					equityId = Convert.ToInt32(reader["shareID"]),
+					equityId = Convert.ToInt32(reader["assetID"]),
 					portfolioId = Convert.ToInt32(reader["portfolioId"]),
 					tranDate= Convert.ToDateTime(reader["transactiondate"]),
 					qty = Convert.ToInt32(reader["qty"]),
@@ -104,23 +104,24 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"SELECT si.shortname, SUM(st.qty) 
-												FROM myfin.sharetransaction as st 
-												inner join myfin.shareinfo as si
-												on si.idshareinfo = st.shareid
-												group by st.shareid; ", connection);
+			using var command = new MySqlCommand(@"select SUM(st.qty*st.price) as total,att.Name
+													from myfin.sharetransaction as st
+													join myfin.assettype att 
+													on att.idAssetType=st.assetTypeId
+													group by st.assettypeid;
+													 ", connection);
 			using var reader = command.ExecuteReader();
-			IList<portfolio> equityList = new List<portfolio>();
+			IList<DashboardDetail> assetTypeList = new List<DashboardDetail>();
 			while (reader.Read())
 			{
-				equityList.Add(new portfolio()
+				assetTypeList.Add(new DashboardDetail()
 				{
-					equityname = reader.GetValue(0).ToString(),
-					avgprice = Convert.ToDouble(reader.GetValue(1).ToString())
+					total = Convert.ToDouble(reader["total"]),
+					assetName = reader["Name"].ToString()
 
 				});
 			}
-			return equityList;
+			return assetTypeList;
 		}
 	}
 }

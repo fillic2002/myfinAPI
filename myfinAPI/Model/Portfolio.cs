@@ -10,7 +10,7 @@ namespace myfinAPI.Model
 		public int trasactionId { get; set; }
 		public string equityname { get; set; }
 		public double avgprice { get; set; }
-		public int qty { get; set; }
+		public double qty { get; set; }
 
 	}
 }
