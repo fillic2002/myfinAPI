@@ -38,7 +38,7 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"SELECT ad.assetname, st.qty, st.action
+			using var command = new MySqlCommand(@"SELECT ad.assetname, st.qty, st.action,st.price
 									FROM myfin.sharetransaction as st 
 									inner join myfin.assetdetail as ad
 									on ad.id= st.assetid
