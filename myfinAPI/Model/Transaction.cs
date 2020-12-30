@@ -10,8 +10,9 @@ namespace myfinAPI.Model
 		public DateTime tranDate { get; set; }
 		public string equityName { get; set; }
 		public int equityId { get; set; }
-		public int qty { get; set; }
+		public double qty { get; set; }
 		public double price { get; set; }
 		public int portfolioId { get; set; }
+		public string tranType { get; set; }
 	}
 }

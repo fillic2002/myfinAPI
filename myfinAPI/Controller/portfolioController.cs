@@ -14,12 +14,36 @@ namespace myfinAPI.Controller
 	public class portfolioController : ControllerBase
 	{
 		[HttpGet]
-		public ActionResult<IEnumerable<portfolio>> GetPortfolio()
+		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
 
 			mysqlContext obj = new mysqlContext();
+			portfolioId = 1;
+			List<portfolio> finalFolio = new List<portfolio>();
+			IList<EquityTransaction> tranDetails = obj.getPortfolio(portfolioId).ToArray();
+			
+			foreach(EquityTransaction eq in tranDetails)
+			{
+				int indx = finalFolio.FindIndex(x => x.equityname == eq.equityName);
+				if(indx>=0)
+				{
+					if (eq.tranType == "S")
+						//update
+						finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
+					else
+						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
+				}				
+				else
+				{
+					//add
+					finalFolio.Add(new portfolio() { 
+					equityname = eq.equityName,
+					qty = eq.qty,				
+					});
+				}
+			}
 
-			return obj.getPortfolio().ToArray();
+			return finalFolio;
 		}
 	}
 }
