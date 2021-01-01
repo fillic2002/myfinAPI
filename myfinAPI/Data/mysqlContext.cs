@@ -57,6 +57,27 @@ namespace myfinAPI.Data
 			return tranList;
 
 		}
+
+		public IList<basefolio> getUserfolio()
+		{
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
+			using var command = new MySqlCommand(@"SELECT folioname, portfolioid FROM myfin.portfolio;" , connection);
+			using var reader = command.ExecuteReader();
+			IList<basefolio> folioList = new List<basefolio>();
+			while (reader.Read())
+			{
+				folioList.Add(new basefolio()
+				{
+					folioName = reader["folioname"].ToString(),				 
+					folioID = (int)reader["portfolioid"]
+				});
+			}
+			return folioList;
+
+		}
+
 		public IList<EquityTransaction> getTransaction()
 		{
 			if (connection.State != ConnectionState.Open)
@@ -72,7 +93,7 @@ namespace myfinAPI.Data
 			{
 				transactionList.Add(new EquityTransaction()
 				{
-					equityId = Convert.ToInt32(reader["assetID"]),
+					equityId = reader["assetID"].ToString(),
 					portfolioId = Convert.ToInt32(reader["portfolioId"]),
 					tranDate = Convert.ToDateTime(reader["transactiondate"]),
 					qty = Convert.ToInt32(reader["qty"]),
@@ -90,15 +111,28 @@ namespace myfinAPI.Data
 
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
-			string dt = tran.tranDate.ToString("yyyy-mm-dd");
+			string dt = tran.tranDate.ToString("yyyy-MM-dd");
 			using var command = new MySqlCommand(@"INSERT INTO myfin.sharetransaction ( price, action,assetid,qty,portfolioid,transactiondate) 
-												VALUES ( 4.5, 'B',"+tran.equityId+","+tran.qty+","+tran.portfolioId+",'"+dt+"');", connection);
+												VALUES ( "+ tran.price +",'"+tran.tranType+"',"+tran.equityId+","+tran.qty+","+tran.portfolioId+",'"+dt+"');", connection);
 			int result = command.ExecuteNonQuery();
 			
 			return true;
 
 		}
 
+		public bool postBankTransaction(BankDetail tran)
+		{
+
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+			string dt = tran.transactionDate.ToString("yyyy-MM-dd");
+			using var command = new MySqlCommand(@"INSERT INTO myfin.bankdetail ( amt, acctid,roi,dateoftransaction) 
+												VALUES ( " + tran.amt+ ",'" + tran.acctId+ "'," + tran.roi + ",'" + dt + "');", connection);
+			int result = command.ExecuteNonQuery();
+
+			return true;
+
+		}
 		public IList<DashboardDetail> GetDashboardDetail()
 		{
 			if (connection.State != ConnectionState.Open)
@@ -124,6 +158,26 @@ namespace myfinAPI.Data
 				});
 			}
 			return assetTypeList;
+		}
+
+		public IList<BankDetail> GetBankDetails()
+		{
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
+			using var command = new MySqlCommand(@"select * from bankdetail", connection);
+			using var reader = command.ExecuteReader();
+			IList<BankDetail> acctDetail = new List<BankDetail>();
+			while (reader.Read())
+			{
+				acctDetail.Add(new BankDetail()
+				{
+					acctId = Convert.ToInt32(reader["acctId"]),
+					amt = Convert.ToDouble(reader["amt"]),
+					roi = Convert.ToDouble(reader["roi"])
+				});
+			}
+			return acctDetail;
 		}
 	}
 }

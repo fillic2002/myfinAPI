@@ -13,12 +13,12 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class portfolioController : ControllerBase
 	{
-		[HttpGet]
+		[HttpGet("Getfolio")]
 		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
 
 			mysqlContext obj = new mysqlContext();
-			portfolioId = 1;
+			portfolioId = 0;
 			List<portfolio> finalFolio = new List<portfolio>();
 			IList<EquityTransaction> tranDetails = obj.getPortfolio(portfolioId).ToArray();
 			
@@ -45,5 +45,15 @@ namespace myfinAPI.Controller
 
 			return finalFolio;
 		}
+
+		[HttpGet("GetAllfolio")]
+		public ActionResult<IEnumerable<basefolio>> GetUserFolio()
+		{
+			mysqlContext obj = new mysqlContext();
+			
+			return obj.getUserfolio().ToArray();
+
+		}
+
 	}
 }
