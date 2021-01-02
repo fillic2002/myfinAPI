@@ -56,7 +56,14 @@ namespace myfinAPI
 
 			app.UseEndpoints(endpoints =>
 			{
-				endpoints.MapControllers();
+				endpoints.MapControllerRoute(
+			   name: "default",
+			   pattern: "{controller=transaction}/{action=GetPortfolio}",
+			   defaults:new { Controller ="transaction", action = "GetPortfolio" }
+
+			   );
+
+				 
 			});
 
 		}

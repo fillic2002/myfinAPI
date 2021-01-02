@@ -16,7 +16,9 @@ namespace myfinAPI.Controller
 		public ActionResult<IEnumerable<DashboardDetail>> GetDashboard()
 		{
 			mysqlContext obj = new mysqlContext();
-			return obj.GetDashboardDetail().ToArray();
+			IList<DashboardDetail> dashBoard = new List<DashboardDetail>();
+			return obj.GetShareAndMFDetails(dashBoard).ToArray();
 		}
 	}
 }
+

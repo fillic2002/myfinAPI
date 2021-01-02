@@ -11,5 +11,17 @@ namespace myfinAPI.Model
 		public double amt { get; set; }
 		public double roi { get; set; }
 		public DateTime transactionDate { get; set; }
+		public string acctName { get; set; }
+		public string acctType { get; set; }
+		public int userid { get; set; }
+
+	}
+
+	public class TotalBankAsset
+	{
+		 
+		public double amt { get; set; }
+		 
+		 
 	}
 }

@@ -126,14 +126,14 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 			string dt = tran.transactionDate.ToString("yyyy-MM-dd");
-			using var command = new MySqlCommand(@"INSERT INTO myfin.bankdetail ( amt, acctid,roi,dateoftransaction) 
-												VALUES ( " + tran.amt+ ",'" + tran.acctId+ "'," + tran.roi + ",'" + dt + "');", connection);
+			using var command = new MySqlCommand(@"INSERT INTO myfin.bankdetail ( amt, useracctid,roi,datetotransaction,userid) 
+												VALUES ( " + tran.amt+ ",'" + tran.acctId+ "'," + tran.roi + ",'" + dt + "',"+tran.userid+");", connection);
 			int result = command.ExecuteNonQuery();
 
 			return true;
 
 		}
-		public IList<DashboardDetail> GetDashboardDetail()
+		public IList<DashboardDetail> GetShareAndMFDetails(IList<DashboardDetail> assetTypeList)
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
@@ -147,7 +147,7 @@ namespace myfinAPI.Data
 													group by ad.assettypeid;
 													 ", connection);
 			using var reader = command.ExecuteReader();
-			IList<DashboardDetail> assetTypeList = new List<DashboardDetail>();
+		 
 			while (reader.Read())
 			{
 				assetTypeList.Add(new DashboardDetail()
@@ -160,24 +160,71 @@ namespace myfinAPI.Data
 			return assetTypeList;
 		}
 
-		public IList<BankDetail> GetBankDetails()
+		//public IList<BankDetail> PostBankTransaction()
+		//{
+		//	if (connection.State != ConnectionState.Open)
+		//		connection.Open();
+
+		//	using var command = new MySqlCommand(@"select * from bankdetail", connection);
+		//	using var reader = command.ExecuteReader();
+		//	IList<BankDetail> acctDetail = new List<BankDetail>();
+		//	while (reader.Read())
+		//	{
+		//		acctDetail.Add(new BankDetail()
+		//		{
+		//			acctId = Convert.ToInt32(reader["acctId"]),
+		//			amt = Convert.ToDouble(reader["amt"]),
+		//			roi = Convert.ToDouble(reader["roi"])
+					
+		//		});
+		//	}
+		//	return acctDetail;
+		//}
+
+		public TotalBankAsset GetBankAssetTotal()
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"select * from bankdetail", connection);
+			using var command = new MySqlCommand(@"SELECT SUM(amt) FROM myfin.bankdetail	WHERE isActive=1;", connection);
+			 
+
+			TotalBankAsset assetTypeList = new TotalBankAsset();
+
+			var result= command.ExecuteScalar();
+			assetTypeList.amt = Convert.ToDouble(result);
+
+			return assetTypeList;
+		}
+
+		public IList<BankDetail> GetBankAssetDetail()
+		{
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
+			using var command = new MySqlCommand(@"select * from myfin.bankdetail bd
+													join myfin.bankaccountinfo ba
+													ON bd.useracctid=ba.accttypeid
+													where isactive=1;", connection);
+
+
+			IList<BankDetail> assetTypeList = new List<BankDetail>();
+
 			using var reader = command.ExecuteReader();
-			IList<BankDetail> acctDetail = new List<BankDetail>();
+
 			while (reader.Read())
 			{
-				acctDetail.Add(new BankDetail()
+				assetTypeList.Add(new BankDetail()
 				{
-					acctId = Convert.ToInt32(reader["acctId"]),
-					amt = Convert.ToDouble(reader["amt"]),
-					roi = Convert.ToDouble(reader["roi"])
+					acctName = reader["Bank Name"].ToString(),
+					acctId = (int)reader["useracctid"],
+					acctType= reader["assettype"].ToString(),
+					amt= Convert.ToDouble(reader["amt"]),
+					roi= Convert.ToDouble(reader["roi"]),
+					transactionDate= Convert.ToDateTime(reader["datetotransaction"])
 				});
 			}
-			return acctDetail;
+			return assetTypeList;
 		}
 	}
 }

@@ -13,14 +13,20 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class BankAssetController
 	{
-		[HttpGet]
-		public ActionResult<IEnumerable<BankDetail>> GetBankAcDetail()
+		[HttpGet("GetTotalAmt")]
+		public ActionResult<TotalBankAsset> GetTotalBankAmt()
 		{
 			mysqlContext obj = new mysqlContext();
-			return obj.GetBankDetails().ToArray();
+			return obj.GetBankAssetTotal();
 		}
-		[HttpPost]
-		public ActionResult<bool> PostPortfolio(BankDetail transactionDetail)
+		[HttpGet("GetDetailedAmt")]
+		public ActionResult<IEnumerable<BankDetail>> GetBankAssetDetail()
+		{
+			mysqlContext obj = new mysqlContext();
+			return obj.GetBankAssetDetail().ToArray();
+		}
+		[HttpPost("SaveAcctStatus")]
+		public ActionResult<bool> PostBankTransaction(BankDetail transactionDetail)
 		{
 			mysqlContext obj = new mysqlContext();
 			return obj.postBankTransaction(transactionDetail);
