@@ -51,7 +51,9 @@ namespace myfinAPI.Data
 				{
 					equityName= reader["assetname"].ToString(),
 					qty= Convert.ToDouble(reader["qty"]),
-					tranType= reader["action"].ToString()
+					tranType= reader["action"].ToString(),
+					price= Convert.ToDouble(reader["price"])
+
 				});
 			}
 			return tranList;

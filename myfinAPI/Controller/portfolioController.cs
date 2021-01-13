@@ -13,12 +13,12 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class portfolioController : ControllerBase
 	{
-		[HttpGet("Getfolio")]
+		[HttpGet("Getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
 
 			mysqlContext obj = new mysqlContext();
-			portfolioId = 0;
+			 
 			List<portfolio> finalFolio = new List<portfolio>();
 			IList<EquityTransaction> tranDetails = obj.getPortfolio(portfolioId).ToArray();
 			
@@ -28,21 +28,30 @@ namespace myfinAPI.Controller
 				if(indx>=0)
 				{
 					if (eq.tranType == "S")
+					{
 						//update
 						finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
+						finalFolio[indx].avgprice -= eq.price * eq.qty;
+					}
 					else
+					{
 						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
+						finalFolio[indx].avgprice += eq.price * eq.qty; ;
+					}
 				}				
 				else
 				{
 					//add
 					finalFolio.Add(new portfolio() { 
 					equityname = eq.equityName,
-					qty = eq.qty,				
+					qty = eq.qty,
+					avgprice=eq.price*eq.qty
 					});
 				}
 			}
-
+			finalFolio.ForEach(
+				n => n.avgprice = n.avgprice / n.qty
+				);
 			return finalFolio;
 		}
 
