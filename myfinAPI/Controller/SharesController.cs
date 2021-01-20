@@ -36,6 +36,17 @@ namespace myfinAPI.Controller
 			return obj.getShare().ToArray();
 		}
 
-		 
+		[HttpGet("GetLivePrice")]
+		public ActionResult<IEnumerable<ShareInfo>> GetLivePrice(IList<ShareInfo> listOfShare)
+		{
+			WebScrapper obj = new WebScrapper();
+
+			obj.GetLivePrice(listOfShare);
+
+			return listOfShare.ToArray();
+
+		}
+
+
 	}
 }

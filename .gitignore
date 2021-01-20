@@ -1,3 +1,5 @@
 ﻿.vs/myfinAPI/v16/.suo
 myfinAPI/bin/Debug
 myfinAPI/obj
+data/EQ_ISINCODE_011220.CSV
+myfinAPI/debug.log
