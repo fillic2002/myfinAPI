@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
+using myfinAPI.Factory;
 using myfinAPI.Model;
 
 namespace myfinAPI.Controller
@@ -16,15 +17,13 @@ namespace myfinAPI.Controller
 		[HttpGet("Getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
-
-			mysqlContext obj = new mysqlContext();
-			 
 			List<portfolio> finalFolio = new List<portfolio>();
-			IList<EquityTransaction> tranDetails = obj.getPortfolio(portfolioId).ToArray();
-			
+			IList<EquityTransaction> tranDetails = ComponentFactory.GetMySqlObject().getPortfolio(portfolioId).ToArray();
+			 
+
 			foreach(EquityTransaction eq in tranDetails)
 			{
-				int indx = finalFolio.FindIndex(x => x.equityname == eq.equityName);
+				int indx = finalFolio.FindIndex(x => x.EquityName== eq.equityName);
 				if(indx>=0)
 				{
 					if (eq.tranType == "S")
@@ -43,20 +42,25 @@ namespace myfinAPI.Controller
 				{
 					//add
 					finalFolio.Add(new portfolio() { 
-					equityname = eq.equityName,
+					EquityName = eq.equityName,
 					qty = eq.qty,
-					avgprice=eq.price*eq.qty
+					avgprice=eq.price*eq.qty,
+					EquityId = eq.equityId
+					
 					});
 				}
 			}
 			finalFolio.ForEach(
-				n => n.avgprice = n.avgprice / n.qty
-				);
+				n => {
+					n.avgprice = n.avgprice / n.qty;
+					n.livePrice = Convert.ToDouble(ComponentFactory.GetWebScrapperObject().GetLivePrice(n.EquityId));
+				}) ;
+			
 			return finalFolio;
 		}
 
 		[HttpGet("GetAllfolio")]
-		public ActionResult<IEnumerable<basefolio>> GetUserFolio()
+		public ActionResult<IEnumerable<Ibasefolio>> GetUserFolio()
 		{
 			mysqlContext obj = new mysqlContext();
 			

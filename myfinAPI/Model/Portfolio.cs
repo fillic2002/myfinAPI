@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 
 namespace myfinAPI.Model
 {
-	public class portfolio:basefolio
+	public class portfolio : Ibasefolio
 	{
 		public int trasactionId { get; set; }
-		public string equityname { get; set; }
 		public double avgprice { get; set; }
 		public double qty { get; set; }
+		public double livePrice { get; set; }
+		public string EquityId {get; set;}
+		public string EquityName { get; set; }
 
 	}
-	public class basefolio
+	public class Ibasefolio
 	{
 		public string folioName { get; set; }
 		public int folioID { get; set; }

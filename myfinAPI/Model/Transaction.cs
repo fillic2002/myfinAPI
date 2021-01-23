@@ -5,11 +5,9 @@ using System.Threading.Tasks;
 
 namespace myfinAPI.Model
 {
-	public class EquityTransaction
+	public class EquityTransaction:EquityBase
 	{
 		public DateTime tranDate { get; set; }
-		public string equityName { get; set; }
-		public string equityId { get; set; }
 		public double qty { get; set; }
 		public double price { get; set; }
 		public int portfolioId { get; set; }

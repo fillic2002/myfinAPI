@@ -38,11 +38,11 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"SELECT ad.assetname, st.qty, st.action,st.price
+			using var command = new MySqlCommand(@"SELECT ad.assetname, st.qty, st.action,st.price,ad.ID
 									FROM myfin.sharetransaction as st 
 									inner join myfin.assetdetail as ad
 									on ad.id= st.assetid
-									where st.portfolioId="+ portfolioID, connection);
+									where st.portfolioId=" + portfolioID, connection);
 			using var reader = command.ExecuteReader();
 			IList<EquityTransaction> tranList = new List<EquityTransaction>();
 			while (reader.Read())
@@ -52,25 +52,25 @@ namespace myfinAPI.Data
 					equityName= reader["assetname"].ToString(),
 					qty= Convert.ToDouble(reader["qty"]),
 					tranType= reader["action"].ToString(),
-					price= Convert.ToDouble(reader["price"])
-
+					price= Convert.ToDouble(reader["price"]),
+					equityId = reader["ID"].ToString()
 				});
 			}
 			return tranList;
 
 		}
 
-		public IList<basefolio> getUserfolio()
+		public IList<portfolio> getUserfolio()
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
 			using var command = new MySqlCommand(@"SELECT folioname, portfolioid FROM myfin.portfolio;" , connection);
 			using var reader = command.ExecuteReader();
-			IList<basefolio> folioList = new List<basefolio>();
+			IList<portfolio> folioList = new List<portfolio>();
 			while (reader.Read())
 			{
-				folioList.Add(new basefolio()
+				folioList.Add(new portfolio()
 				{
 					folioName = reader["folioname"].ToString(),				 
 					folioID = (int)reader["portfolioid"]
@@ -135,6 +135,19 @@ namespace myfinAPI.Data
 			return true;
 
 		}
+
+		public bool UpdateLivePrice(string assetId,double liveprice)
+		{
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
+			using var command = new MySqlCommand(@"UPDATE myfin.assetdetail SET liveprice = "+ liveprice +"," +
+									" dtupdated ='" + DateTime.UtcNow.ToString("yyyy-MM-dd") + "' WHERE (Id = "+ assetId+");",connection);
+			
+			int result = command.ExecuteNonQuery();
+
+			return true;
+		}
 		public IList<DashboardDetail> GetShareAndMFDetails(IList<DashboardDetail> assetTypeList)
 		{
 			if (connection.State != ConnectionState.Open)
@@ -188,7 +201,7 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"SELECT SUM(amt) FROM myfin.bankdetail	WHERE isActive=1;", connection);
+			using var command = new MySqlCommand(@"SELECT SUM(amt) FROM myfin.bankdetail WHERE isActive=1;", connection);
 			 
 
 			TotalBankAsset assetTypeList = new TotalBankAsset();
@@ -227,6 +240,35 @@ namespace myfinAPI.Data
 				});
 			}
 			return assetTypeList;
+		}
+
+		public double GetLivePrice (string assetId)
+		{
+			double currentPrice = 0;
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
+			using var command = new MySqlCommand(@"SELECT dtUpdated,liveprice
+											FROM myfin.assetdetail att
+											where att.id="+assetId+";", connection);
+
+			using var reader = command.ExecuteReader();
+
+			while (reader.Read())
+			{
+				var dt = reader["dtUpdated"];
+				if (dt != DBNull.Value)
+				{
+					if (Convert.ToDateTime(dt).Date == DateTime.Today)
+					{
+						var res = reader["liveprice"];
+						//if (res != DBNull.Value)
+						currentPrice = Convert.ToDouble(res);
+					}
+				}
+			}
+			return currentPrice;
+
 		}
 	}
 }
