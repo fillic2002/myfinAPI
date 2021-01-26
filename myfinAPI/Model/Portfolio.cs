@@ -13,6 +13,7 @@ namespace myfinAPI.Model
 		public double livePrice { get; set; }
 		public string EquityId {get; set;}
 		public string EquityName { get; set; }
+		public string symobl { get; set; }
 
 	}
 	public class Ibasefolio

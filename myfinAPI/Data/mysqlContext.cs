@@ -38,22 +38,23 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"SELECT ad.assetname, st.qty, st.action,st.price,ad.ID
-									FROM myfin.sharetransaction as st 
-									inner join myfin.assetdetail as ad
-									on ad.id= st.assetid
-									where st.portfolioId=" + portfolioID, connection);
+			using var command = new MySqlCommand(@"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN
+						FROM myfin.equitytransactions as st 
+						inner join myfin.equitydetails as ed
+						on ed.ISIN= st.assetid
+						where st.portfolioId=" + portfolioID, connection);
 			using var reader = command.ExecuteReader();
 			IList<EquityTransaction> tranList = new List<EquityTransaction>();
 			while (reader.Read())
 			{
 				tranList.Add(new EquityTransaction()
 				{
-					equityName= reader["assetname"].ToString(),
+					equityName= reader["name"].ToString(),
 					qty= Convert.ToDouble(reader["qty"]),
 					tranType= reader["action"].ToString(),
 					price= Convert.ToDouble(reader["price"]),
-					equityId = reader["ID"].ToString()
+					equityId = reader["ISIN"].ToString(),
+					symbol = reader["symbol"].ToString()
 				});
 			}
 			return tranList;
@@ -80,15 +81,15 @@ namespace myfinAPI.Data
 
 		}
 
-		public IList<EquityTransaction> getTransaction()
+		public IList<EquityTransaction> getTransaction(int portfolioId)
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
 			using var command = new MySqlCommand(@"SELECT *
-												FROM myfin.sharetransaction as st
+												FROM myfin.equitytransaction as st
 												join myfin.assetdetail ad
-												on st.assetid=ad.id;", connection);
+												on st.assetid=ad.id Where st.portfolioid="+portfolioId+";", connection);
 			using var reader = command.ExecuteReader();
 			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
 			while (reader.Read())
@@ -114,12 +115,11 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 			string dt = tran.tranDate.ToString("yyyy-MM-dd");
-			using var command = new MySqlCommand(@"INSERT INTO myfin.sharetransaction ( price, action,assetid,qty,portfolioid,transactiondate) 
+			using var command = new MySqlCommand(@"INSERT INTO myfin.equitytransaction ( price, action,assetid,qty,portfolioid,transactiondate) 
 												VALUES ( "+ tran.price +",'"+tran.tranType+"',"+tran.equityId+","+tran.qty+","+tran.portfolioId+",'"+dt+"');", connection);
 			int result = command.ExecuteNonQuery();
 			
 			return true;
-
 		}
 
 		public bool postBankTransaction(BankDetail tran)
@@ -136,13 +136,13 @@ namespace myfinAPI.Data
 
 		}
 
-		public bool UpdateLivePrice(string assetId,double liveprice)
+		public bool UpdateLivePrice(string isin,double liveprice)
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"UPDATE myfin.assetdetail SET liveprice = "+ liveprice +"," +
-									" dtupdated ='" + DateTime.UtcNow.ToString("yyyy-MM-dd") + "' WHERE (Id = "+ assetId+");",connection);
+			using var command = new MySqlCommand(@"UPDATE myfin.equitydetails SET liveprice = "+ liveprice +"," +
+									" dtupdated ='" + DateTime.UtcNow.ToString("yyyy-MM-dd") + "' WHERE (ISIN = '"+ isin+"');",connection);
 			
 			int result = command.ExecuteNonQuery();
 
@@ -154,7 +154,7 @@ namespace myfinAPI.Data
 				connection.Open();
 
 			using var command = new MySqlCommand(@"select SUM(st.qty*st.price) as total,att.Name
-													from myfin.sharetransaction as st
+													from myfin.equitytransactions as st
 													join myfin.assetdetail ad
 													on ad.id=st.assetID
 													Join myfin.assettype att
@@ -249,8 +249,8 @@ namespace myfinAPI.Data
 				connection.Open();
 
 			using var command = new MySqlCommand(@"SELECT dtUpdated,liveprice
-											FROM myfin.assetdetail att
-											where att.id="+assetId+";", connection);
+											FROM myfin.equitydetails ed
+											where ed.isin='" + assetId+"';", connection);
 
 			using var reader = command.ExecuteReader();
 

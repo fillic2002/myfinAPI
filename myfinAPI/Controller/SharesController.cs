@@ -41,7 +41,7 @@ namespace myfinAPI.Controller
 		{
 			WebScrapper obj = new WebScrapper();
 
-			obj.GetLivePrice(listOfShare[0].equityId);
+			obj.GetLivePriceAsync(listOfShare[0].symbol ,listOfShare[0].equityId);
 
 			return listOfShare.ToArray();
 

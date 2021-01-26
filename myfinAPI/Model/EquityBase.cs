@@ -9,6 +9,7 @@ namespace myfinAPI.Model
 	{
 		public string equityName { get; set; }
 		public string equityId { get; set; }
+		public string symbol { get; set; }
 		public string livePrice { get; set; }
 	}
 }

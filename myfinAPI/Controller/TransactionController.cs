@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
+using myfinAPI.Factory;
 using myfinAPI.Model;
 
 namespace myfinAPI.Controller
@@ -13,13 +14,13 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class TransactionController: ControllerBase
 	{
-		[HttpGet]
-		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio()
+		[HttpGet("transaction/{portfolioId}")]
+		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
 		{
-			mysqlContext obj = new mysqlContext();
-			return obj.getTransaction().ToArray();
+			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();
+			//return obj.getTransaction(portfolioId).ToArray();
 		}
-		[HttpPost]
+		[HttpGet("transaction")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{
 			mysqlContext obj = new mysqlContext();
