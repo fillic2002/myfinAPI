@@ -87,21 +87,21 @@ namespace myfinAPI.Data
 				connection.Open();
 
 			using var command = new MySqlCommand(@"SELECT *
-												FROM myfin.equitytransaction as st
-												join myfin.assetdetail ad
-												on st.assetid=ad.id Where st.portfolioid="+portfolioId+";", connection);
+								FROM myfin.equitytransactions as et
+								join myfin.equitydetails ed
+								on et.assetid=ed.isin Where et.portfolioid=" + portfolioId+";", connection);
 			using var reader = command.ExecuteReader();
 			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
 			while (reader.Read())
 			{
 				transactionList.Add(new EquityTransaction()
 				{
-					equityId = reader["assetID"].ToString(),
+					equityId = reader["isin"].ToString(),
 					portfolioId = Convert.ToInt32(reader["portfolioId"]),
 					tranDate = Convert.ToDateTime(reader["transactiondate"]),
 					qty = Convert.ToInt32(reader["qty"]),
 					price = Convert.ToDouble(reader["price"]),
-					equityName = reader["assetName"].ToString(),
+					equityName = reader["Name"].ToString(),
 					tranType = reader["action"].ToString()
 				});
 			}
@@ -109,16 +109,29 @@ namespace myfinAPI.Data
 
 		}
 
-		public bool postTransaction(EquityTransaction tran)
+		public bool postEquityTransaction(EquityTransaction tran)
 		{
 
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 			string dt = tran.tranDate.ToString("yyyy-MM-dd");
-			using var command = new MySqlCommand(@"INSERT INTO myfin.equitytransaction ( price, action,assetid,qty,portfolioid,transactiondate) 
-												VALUES ( "+ tran.price +",'"+tran.tranType+"',"+tran.equityId+","+tran.qty+","+tran.portfolioId+",'"+dt+"');", connection);
+			using var command = new MySqlCommand(@"INSERT INTO myfin.equitytransactions ( price, action,assetid,qty,portfolioid,transactiondate) 
+												VALUES ( "+ tran.price +",'"+tran.tranType+"','"+tran.equityId+"',"+tran.qty+","+tran.portfolioId+",'"+dt+"');", connection);
 			int result = command.ExecuteNonQuery();
 			
+			return true;
+		}
+
+		public bool postGoldTransaction(EquityTransaction tran)
+		{
+
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+			string dt = tran.tranDate.ToString("yyyy-MM-dd");
+			using var command = new MySqlCommand(@"INSERT INTO myfin.propertytransaction ( assettype, dtupdated,assetvalue,qty,portfolioid) 
+												VALUES ( " + tran.typeAsset + ",'" + dt + "','" + tran.price+ "'," + tran.qty + "," + tran.portfolioId + ");", connection);
+			int result = command.ExecuteNonQuery();
+
 			return true;
 		}
 
@@ -153,14 +166,10 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"select SUM(st.qty*st.price) as total,att.Name
-													from myfin.equitytransactions as st
-													join myfin.assetdetail ad
-													on ad.id=st.assetID
-													Join myfin.assettype att
-													on att.idAssetType=ad.assetTypeID
-													group by ad.assettypeid;
-													 ", connection);
+			using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total,ed.Name
+										from myfin.equitytransactions as et
+										join myfin.equitydetails ed
+										on ed.isin=et.assetID;", connection);
 			using var reader = command.ExecuteReader();
 		 
 			while (reader.Read())
@@ -168,7 +177,7 @@ namespace myfinAPI.Data
 				assetTypeList.Add(new DashboardDetail()
 				{
 					total = Convert.ToDouble(reader["total"]),
-					assetName = reader["Name"].ToString()
+					assetName = "Shares"
 
 				});
 			}

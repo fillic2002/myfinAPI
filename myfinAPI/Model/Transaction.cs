@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Model
 {
@@ -12,5 +13,6 @@ namespace myfinAPI.Model
 		public double price { get; set; }
 		public int portfolioId { get; set; }
 		public string tranType { get; set; }
+		public int typeAsset { get; set; }
 	}
 }

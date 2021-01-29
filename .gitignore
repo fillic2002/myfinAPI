@@ -3,3 +3,5 @@ myfinAPI/bin/Debug
 myfinAPI/obj
 data/EQ_ISINCODE_011220.CSV
 myfinAPI/debug.log
+.vs/myfinAPI/v16
+myfinAPITests/obj

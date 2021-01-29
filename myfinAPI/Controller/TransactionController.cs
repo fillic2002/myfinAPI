@@ -14,17 +14,28 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class TransactionController: ControllerBase
 	{
-		[HttpGet("transaction/{portfolioId}")]
+		[HttpGet("getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
 		{
-			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();
-			//return obj.getTransaction(portfolioId).ToArray();
+			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();			
 		}
-		[HttpGet("transaction")]
+		[HttpGet("tran/details")]
+		public void GetTransaction(int portfolioId)
+		{
+			 ComponentFactory.GetWebScrapperObject().GetTransaction();
+		}
+		[HttpPost("updatefolio")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{
-			mysqlContext obj = new mysqlContext();
-			return obj.postTransaction(tran);
+			if (tran.typeAsset == 1)
+			{
+				return ComponentFactory.GetMySqlObject().postEquityTransaction(tran);
+			}
+			else if (tran.typeAsset == 12)
+			{
+				return ComponentFactory.GetMySqlObject().postGoldTransaction(tran);
+			}
+			return false;
 		}
 	}
 }

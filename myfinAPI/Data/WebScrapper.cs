@@ -49,6 +49,20 @@ namespace myfinAPI.Data
 			}
 			return liveprice;
 		}
+		public void GetTransaction()
+		{
+			_webScrapperUrl = "https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard/stock";
+			_driver = new ChromeDriver();
+			_driver.Navigate().GoToUrl(_webScrapperUrl);			
+			var element = _driver.FindElement(By.Id("USER_LOGIN"));
+			element.Click();
+			_driver.SwitchTo().Frame(_driver.FindElement(By.Id("pwd")));
+			//ComponentFactory.GetMySqlObject().UpdateLivePrice(isin, liveprice);
+
+			Dispose();
+
+		}
+
 		 
 	}
 }
