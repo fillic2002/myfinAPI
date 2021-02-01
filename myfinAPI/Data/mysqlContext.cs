@@ -43,22 +43,25 @@ namespace myfinAPI.Data
 						inner join myfin.equitydetails as ed
 						on ed.ISIN= st.assetid
 						where st.portfolioId=" + portfolioID, connection);
-			using var reader = command.ExecuteReader();
 			IList<EquityTransaction> tranList = new List<EquityTransaction>();
-			while (reader.Read())
+
+			using (var reader = command.ExecuteReader())
 			{
-				tranList.Add(new EquityTransaction()
+				while (reader.Read())
 				{
-					equityName= reader["name"].ToString(),
-					qty= Convert.ToDouble(reader["qty"]),
-					tranType= reader["action"].ToString(),
-					price= Convert.ToDouble(reader["price"]),
-					equityId = reader["ISIN"].ToString(),
-					symbol = reader["symbol"].ToString()
-				});
+					tranList.Add(new EquityTransaction()
+					{
+						equityName = reader["name"].ToString(),
+						qty = Convert.ToDouble(reader["qty"]),
+						tranType = reader["action"].ToString(),
+						price = Convert.ToDouble(reader["price"]),
+						equityId = reader["ISIN"].ToString(),
+						symbol = reader["symbol"].ToString()
+					});
+				}
 			}
 			return tranList;
-
+			
 		}
 
 		public IList<portfolio> getUserfolio()
@@ -85,27 +88,38 @@ namespace myfinAPI.Data
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
-
-			using var command = new MySqlCommand(@"SELECT *
+			try
+			{
+				using var command = new MySqlCommand(@"SELECT *
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
-								on et.assetid=ed.isin Where et.portfolioid=" + portfolioId+";", connection);
-			using var reader = command.ExecuteReader();
-			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
-			while (reader.Read())
-			{
-				transactionList.Add(new EquityTransaction()
-				{
-					equityId = reader["isin"].ToString(),
-					portfolioId = Convert.ToInt32(reader["portfolioId"]),
-					tranDate = Convert.ToDateTime(reader["transactiondate"]),
-					qty = Convert.ToInt32(reader["qty"]),
-					price = Convert.ToDouble(reader["price"]),
-					equityName = reader["Name"].ToString(),
-					tranType = reader["action"].ToString()
-				});
+								on et.assetid=ed.isin Where et.portfolioid=" + portfolioId + ";", connection);
+
+				IList<EquityTransaction> transactionList = new List<EquityTransaction>();
+				using (var reader = command.ExecuteReader())
+				{ 
+					while (reader.Read())
+					{
+						transactionList.Add(new EquityTransaction()
+						{
+							equityId = reader["isin"].ToString(),
+							portfolioId = Convert.ToInt32(reader["portfolioId"]),
+							tranDate = Convert.ToDateTime(reader["transactiondate"]),
+							qty = Convert.ToInt32(reader["qty"]),
+							price = Convert.ToDouble(reader["price"]),
+							equityName = reader["Name"].ToString(),
+							tranType = reader["action"].ToString()
+						});
+					}
+				}
+
+				return transactionList;
 			}
-			return transactionList;
+			catch(Exception ex)
+			{
+				string msg = ex.Message;
+				return null;
+			} 
 
 		}
 
@@ -128,7 +142,7 @@ namespace myfinAPI.Data
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 			string dt = tran.tranDate.ToString("yyyy-MM-dd");
-			using var command = new MySqlCommand(@"INSERT INTO myfin.propertytransaction ( assettype, dtupdated,assetvalue,qty,portfolioid) 
+			using var command = new MySqlCommand(@"INSERT INTO myfin.propertytransaction ( assettype, dtofpurchase,assetvalue,qty,portfolioid) 
 												VALUES ( " + tran.typeAsset + ",'" + dt + "','" + tran.price+ "'," + tran.qty + "," + tran.portfolioId + ");", connection);
 			int result = command.ExecuteNonQuery();
 
@@ -161,15 +175,15 @@ namespace myfinAPI.Data
 
 			return true;
 		}
-		public IList<DashboardDetail> GetShareAndMFDetails(IList<DashboardDetail> assetTypeList)
+		public void GetSharesDetails(IList<DashboardDetail> assetTypeList)
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total,ed.Name
-										from myfin.equitytransactions as et
-										join myfin.equitydetails ed
-										on ed.isin=et.assetID;", connection);
+			using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total
+								from myfin.equitytransactions as et
+								join myfin.equitydetails ed
+								on ed.isin = et.assetID; ", connection);
 			using var reader = command.ExecuteReader();
 		 
 			while (reader.Read())
@@ -181,13 +195,42 @@ namespace myfinAPI.Data
 
 				});
 			}
-			return assetTypeList;
+			 
 		}
+		public void GetPropertyCurrentValue(IList<DashboardDetail> assetTypeList)
+		{
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
 
+			using var command = new MySqlCommand(@"select sum(currentvalue) as total,ast.name
+									from myfin.propertytransaction pro
+									join myfin.assettype ast
+									on ast.idassettype=pro.assettype
+									group by assettype;", connection);
+			using var reader = command.ExecuteReader();
+
+			while (reader.Read())
+			{
+				assetTypeList.Add(new DashboardDetail()
+				{
+					total = Convert.ToDouble(reader["total"]),
+					assetName = reader["name"].ToString()
+
+				});
+			}
+			 
+		}
+		private string getAssetName(int type)
+		{
+			if (type == 12)
+				return "Gold";
+			return "";
+		}
 		//public IList<BankDetail> PostBankTransaction()
 		//{
 		//	if (connection.State != ConnectionState.Open)
 		//		connection.Open();
+
 
 		//	using var command = new MySqlCommand(@"select * from bankdetail", connection);
 		//	using var reader = command.ExecuteReader();
@@ -199,25 +242,39 @@ namespace myfinAPI.Data
 		//			acctId = Convert.ToInt32(reader["acctId"]),
 		//			amt = Convert.ToDouble(reader["amt"]),
 		//			roi = Convert.ToDouble(reader["roi"])
-					
+
 		//		});
 		//	}
 		//	return acctDetail;
 		//}
 
-		public TotalBankAsset GetBankAssetTotal()
+		public IList<TotalBankAsset> GetBankAssetDetails()
 		{
 			if (connection.State != ConnectionState.Open)
 				connection.Open();
 
-			using var command = new MySqlCommand(@"SELECT SUM(amt) FROM myfin.bankdetail WHERE isActive=1;", connection);
+			using var command = new MySqlCommand(@"SELECT sum(amt) as total,ast.name FROM myfin.bankdetail bd
+							join myfin.bankaccountinfo bi 
+							on bi.acctid =bd.useracctId
+							join myfin.assettype ast
+							on ast.idAssetType = bi.accttype
+							WHERE isActive=1
+							group by ast.Name;", connection);
 			 
 
-			TotalBankAsset assetTypeList = new TotalBankAsset();
+			IList<TotalBankAsset> assetTypeList = new List<TotalBankAsset>();
 
-			var result= command.ExecuteScalar();
-			assetTypeList.amt = Convert.ToDouble(result);
+			var reader = command.ExecuteReader();
+			while (reader.Read())
 
+			{
+				assetTypeList.Add(new TotalBankAsset()
+				{
+					totalAmt = Convert.ToDouble(reader["total"]),
+					actType = reader["name"].ToString()
+				});
+			}
+			 
 			return assetTypeList;
 		}
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
+using myfinAPI.Factory;
 using myfinAPI.Model;
 
 namespace myfinAPI.Controller
@@ -15,9 +16,20 @@ namespace myfinAPI.Controller
 		[HttpGet]
 		public ActionResult<IEnumerable<DashboardDetail>> GetDashboard()
 		{
-			mysqlContext obj = new mysqlContext();
-			IList<DashboardDetail> dashBoard = new List<DashboardDetail>();
-			return obj.GetShareAndMFDetails(dashBoard).ToArray();
+			IList<DashboardDetail> dashBoard = new List<DashboardDetail>();			
+ 
+			ComponentFactory.GetMySqlObject().GetSharesDetails(dashBoard);
+			ComponentFactory.GetMySqlObject().GetPropertyCurrentValue(dashBoard);
+			var bankdetails = ComponentFactory.GetMySqlObject().GetBankAssetDetails().ToArray();
+			foreach (TotalBankAsset asset in bankdetails)
+			{
+				dashBoard.Add(new DashboardDetail()
+				{
+					assetName = asset.actType,
+					total = asset.totalAmt
+				}); ;
+			}
+			return dashBoard.ToArray();
 		}
 	}
 }

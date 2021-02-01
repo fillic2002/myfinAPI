@@ -12,17 +12,17 @@ namespace myfinAPI.Controller
 {
 	[Route("[controller]")]
 	[ApiController]
-	public class TransactionController: ControllerBase
+	public class TransactionController : ControllerBase
 	{
 		[HttpGet("getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
 		{
-			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();			
+			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();
 		}
 		[HttpGet("tran/details")]
 		public void GetTransaction(int portfolioId)
 		{
-			 ComponentFactory.GetWebScrapperObject().GetTransaction();
+			ComponentFactory.GetWebScrapperObject().GetTransaction();
 		}
 		[HttpPost("updatefolio")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
@@ -31,7 +31,7 @@ namespace myfinAPI.Controller
 			{
 				return ComponentFactory.GetMySqlObject().postEquityTransaction(tran);
 			}
-			else if (tran.typeAsset == 12)
+			else if (tran.typeAsset == 12 || tran.typeAsset ==7 || tran.typeAsset == 8)
 			{
 				return ComponentFactory.GetMySqlObject().postGoldTransaction(tran);
 			}

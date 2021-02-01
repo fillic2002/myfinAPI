@@ -14,13 +14,13 @@ namespace myfinAPI.Model
 		public string acctName { get; set; }
 		public string acctType { get; set; }
 		public int userid { get; set; }
-
 	}
 
 	public class TotalBankAsset
 	{
 		 
-		public double amt { get; set; }
+		public double totalAmt { get; set; }
+		public string actType { get; set; }
 		 
 		 
 	}

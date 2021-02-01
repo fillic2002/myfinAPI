@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
+using myfinAPI.Factory;
 using myfinAPI.Model;
 
 namespace myfinAPI.Controller
@@ -16,8 +17,13 @@ namespace myfinAPI.Controller
 		[HttpGet("GetTotalAmt")]
 		public ActionResult<TotalBankAsset> GetTotalBankAmt()
 		{
-			mysqlContext obj = new mysqlContext();
-			return obj.GetBankAssetTotal();
+			TotalBankAsset obj = new TotalBankAsset();
+			IList<TotalBankAsset> bankDetails= ComponentFactory.GetMySqlObject().GetBankAssetDetails();
+			foreach(TotalBankAsset item in bankDetails)
+			{
+				obj.totalAmt += item.totalAmt;
+			}
+			return obj;
 		}
 		[HttpGet("GetDetailedAmt")]
 		public ActionResult<IEnumerable<BankDetail>> GetBankAssetDetail()
