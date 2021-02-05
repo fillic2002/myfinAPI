@@ -36,16 +36,16 @@ namespace myfinAPI.Controller
 			return obj.getShare().ToArray();
 		}
 
-		[HttpGet("GetLivePrice")]
-		public ActionResult<IEnumerable<EquityTransaction>> GetLivePrice(IList<EquityTransaction> listOfShare)
-		{
-			WebScrapper obj = new WebScrapper();
+		//[HttpGet("GetLivePrice")]
+		//public ActionResult<IEnumerable<EquityTransaction>> GetLivePrice(IList<EquityTransaction> listOfShare)
+		//{
+		//	WebScrapper obj = new WebScrapper();
 
-			obj.GetLivePriceAsync(listOfShare[0].symbol ,listOfShare[0].equityId);
+		//	obj.GetLivePriceAsync(listOfShare[0].symbol ,listOfShare[0].equityId);
 
-			return listOfShare.ToArray();
+		//	return listOfShare.ToArray();
 
-		}
+		//}
 
 
 	}

@@ -46,14 +46,15 @@ namespace myfinAPI.Controller
 					qty = eq.qty,
 					avgprice=eq.price*eq.qty,
 					EquityId = eq.equityId,
-					symobl =eq.symbol					
+					symobl =eq.symbol,
+					equityType = eq.typeAsset
 					});
 				}
 			}
 			finalFolio.ForEach(
 				async n => {
 					n.avgprice = n.avgprice / n.qty;
-					n.livePrice = Convert.ToDouble(await ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n.symobl,n.EquityId));
+					n.livePrice = Convert.ToDouble(await ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n));
 				}) ;
 			
 			return finalFolio;

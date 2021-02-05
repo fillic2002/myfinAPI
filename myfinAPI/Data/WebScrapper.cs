@@ -19,29 +19,33 @@ namespace myfinAPI.Data
 			_driver.Quit();
 		}
 
-		public async Task<double> GetLivePriceAsync(string symbol, string isin)
+		public async Task<double> GetLivePriceAsync(portfolio folio)
 		{
 			
-			if (symbol == null)
+			if (folio.symobl == null)
 				return 0;
-			double liveprice = ComponentFactory.GetMySqlObject().GetLivePrice(isin);
+			double liveprice = ComponentFactory.GetMySqlObject().GetLivePrice(folio.EquityId);
 			try
 			{
 				
-				if (liveprice == 0)
+				if (liveprice == 0 && folio.equityType ==1)
 				{
 					_driver = new ChromeDriver();
-					 _driver.Navigate().GoToUrl(_webScrapperUrl + symbol);
+					 _driver.Navigate().GoToUrl(_webScrapperUrl + folio.symobl);
 					Thread.Sleep(1000);
 					liveprice = Convert.ToDouble(_driver.FindElements(By.Id("quoteLtp"))[0].Text);
 
-					 ComponentFactory.GetMySqlObject().UpdateLivePrice(isin, liveprice);
+					 ComponentFactory.GetMySqlObject().UpdateLivePrice(folio.EquityId, liveprice);
 
-					Dispose();
-					
+					Dispose();					
+				}
+				else
+				{
+
 				}
 			}
 			catch(Exception ex)
+
 			{
 				string s = ex.Message;
 				Dispose();
