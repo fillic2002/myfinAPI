@@ -27,7 +27,7 @@ namespace myfinAPI.Controller
 		[HttpPost("updatefolio")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{
-			if (tran.typeAsset == 1)
+			if (tran.typeAsset == 1 || tran.typeAsset==2)
 			{
 				return ComponentFactory.GetMySqlObject().postEquityTransaction(tran);
 			}

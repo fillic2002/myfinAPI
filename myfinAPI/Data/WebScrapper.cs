@@ -24,25 +24,33 @@ namespace myfinAPI.Data
 			
 			if (folio.symobl == null)
 				return 0;
-			double liveprice = ComponentFactory.GetMySqlObject().GetLivePrice(folio.EquityId);
+			EquityBase _eq = new EquityBase();
+			_eq=ComponentFactory.GetMySqlObject().GetLivePrice(folio.EquityId);
 			try
 			{
-				
-				if (liveprice == 0 && folio.equityType ==1)
+
+				if (_eq.livePrice == 0)
 				{
 					_driver = new ChromeDriver();
-					 _driver.Navigate().GoToUrl(_webScrapperUrl + folio.symobl);
-					Thread.Sleep(1000);
-					liveprice = Convert.ToDouble(_driver.FindElements(By.Id("quoteLtp"))[0].Text);
-
-					 ComponentFactory.GetMySqlObject().UpdateLivePrice(folio.EquityId, liveprice);
-
-					Dispose();					
+					if (folio.equityType == 1)			
+					{
+						
+						_driver.Navigate().GoToUrl(_webScrapperUrl + folio.symobl);
+						Thread.Sleep(1000);
+						_eq.livePrice = Convert.ToDouble(_driver.FindElements(By.Id("quoteLtp"))[0].Text);						
+					}
+				  else
+					{	
+						_driver.Navigate().GoToUrl(_eq.desctiption);
+						Thread.Sleep(1000);
+						//_eq.livePrice = Convert.ToDouble(
+						_eq.livePrice=Convert.ToDouble(_driver.FindElements(By.ClassName("amt"))[0].Text.Substring(1));
+						 
+					}
+					ComponentFactory.GetMySqlObject().UpdateLivePrice(folio.EquityId, _eq.livePrice);
+					Dispose();
 				}
-				else
-				{
-
-				}
+				
 			}
 			catch(Exception ex)
 
@@ -51,7 +59,7 @@ namespace myfinAPI.Data
 				Dispose();
 				
 			}
-			return liveprice;
+			return _eq.livePrice;
 		}
 		public void GetTransaction()
 		{

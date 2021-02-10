@@ -43,7 +43,7 @@ namespace myfinAPI.Data
 				using var command = new MySqlCommand(@"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
-						on ed.ISIN= st.assetid
+						on ed.ISIN= st.isin
 						where st.portfolioId=" + portfolioID, _conn);
 				
 
@@ -102,7 +102,7 @@ namespace myfinAPI.Data
 					using var command = new MySqlCommand(@"SELECT *
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
-								on et.assetid=ed.isin Where et.portfolioid=" + portfolioId + ";", _conn);
+								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + ";", _conn);
 
 					
 					using (var reader = command.ExecuteReader())
@@ -139,7 +139,7 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"INSERT INTO myfin.equitytransactions ( price, action,assetid,qty,portfolioid,transactiondate) 
+				using var command = new MySqlCommand(@"INSERT INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate) 
 												VALUES ( " + tran.price + ",'" + tran.tranType + "','" + tran.equityId + "'," + tran.qty + "," + tran.portfolioId + ",'" + dt + "');", _conn);
 				int result = command.ExecuteNonQuery();
 			}
@@ -194,7 +194,7 @@ namespace myfinAPI.Data
 				using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total,aty.name
 								from myfin.equitytransactions as et
 								join myfin.equitydetails ed
-								on ed.isin = et.assetID
+								on ed.isin = et.isin
                                 join myfin.assettype aty
                                 on aty.idassettype=ed.assettypeid
                                 group by assettypeid;", _conn);
@@ -321,17 +321,19 @@ namespace myfinAPI.Data
 			return assetTypeList;
 		}
 
-		public double GetLivePrice (string assetId)
+		public EquityBase GetLivePrice (string assetId)
 		{
-			double currentPrice = 0;
+			EquityBase _eq = new EquityBase();
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
+			
 				_conn.Open();
-				using var command = new MySqlCommand(@"SELECT dtUpdated,liveprice
+				using var command = new MySqlCommand(@"SELECT dtUpdated,liveprice,description
 											FROM myfin.equitydetails ed
 											where ed.isin='" + assetId + "';", _conn);
 
 				using var reader = command.ExecuteReader();
+				 
 
 				while (reader.Read())
 				{
@@ -340,14 +342,14 @@ namespace myfinAPI.Data
 					{
 						if (Convert.ToDateTime(dt).Date == DateTime.Today)
 						{
-							var res = reader["liveprice"];
-							//if (res != DBNull.Value)
-							currentPrice = Convert.ToDouble(res);
+							_eq.livePrice = Convert.ToDouble(reader["liveprice"]);							
 						}
+						else
+							_eq.desctiption = reader["description"].ToString();
 					}
 				}
 			}
-			return currentPrice;
+			return _eq;
 
 		}
 	}
