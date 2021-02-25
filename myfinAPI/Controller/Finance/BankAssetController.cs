@@ -28,14 +28,12 @@ namespace myfinAPI.Controller
 		[HttpGet("GetDetailedAmt")]
 		public ActionResult<IEnumerable<BankDetail>> GetBankAssetDetail()
 		{
-			mysqlContext obj = new mysqlContext();
-			return obj.GetBankAssetDetail().ToArray();
+			return ComponentFactory.GetMySqlObject().GetBankAssetDetail().ToArray();
 		}
 		[HttpPost("SaveAcctStatus")]
 		public ActionResult<bool> PostBankTransaction(BankDetail transactionDetail)
-		{
-			mysqlContext obj = new mysqlContext();
-			return obj.postBankTransaction(transactionDetail);
+		{		
+			return ComponentFactory.GetMySqlObject().postBankTransaction(transactionDetail);			
 		}
 	}
 }

@@ -25,8 +25,8 @@ namespace myfinAPI.Controller
 			{
 				dashBoard.Add(new DashboardDetail()
 				{
-					assetName = asset.actType,
-					total = asset.totalAmt
+					AssetName = asset.actType,
+					Total = asset.totalAmt
 				}); ;
 			}
 			return dashBoard.ToArray();

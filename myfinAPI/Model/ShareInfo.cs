@@ -7,7 +7,7 @@ namespace myfinAPI.Model
 {
 	public class ShareInfo
 	{
-		public int id { get; set; }
+		public string id { get; set; }
 		public string shortName { get; set; }
 		public string fullName { get; set; }
 		public string livePrice { get; set; }

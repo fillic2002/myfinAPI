@@ -25,7 +25,7 @@ namespace myfinAPI.Data
 				{
 					sharesList.Add(new ShareInfo()
 					{
-						id = Convert.ToInt32(reader.GetValue(0)),
+						id = reader.GetValue(0).ToString(),
 						fullName = reader.GetValue(1).ToString(),
 						shortName = reader.GetValue(2).ToString()
 					});
@@ -40,11 +40,23 @@ namespace myfinAPI.Data
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				using var command = new MySqlCommand(@"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid
+				string query;
+				if (portfolioID != 0)
+				{
+					query = @"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
 						on ed.ISIN= st.isin
-						where st.portfolioId=" + portfolioID, _conn);
+						where st.portfolioId=" + portfolioID;
+				}
+				else
+				{
+					query= @"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
+						FROM myfin.equitytransactions as st 
+						inner join myfin.equitydetails as ed
+						on ed.ISIN= st.isin";
+				}
+				using var command = new MySqlCommand(query, _conn);
 				
 
 				using (var reader = command.ExecuteReader())
@@ -59,7 +71,10 @@ namespace myfinAPI.Data
 							price = Convert.ToDouble(reader["price"]),
 							equityId = reader["ISIN"].ToString(),
 							symbol = reader["symbol"].ToString(),
-							typeAsset = Convert.ToInt32(reader["assettypeid"])
+							typeAsset = Convert.ToInt32(reader["assettypeid"]),
+							livePrice= Convert.ToDouble(reader["liveprice"]),
+							tranDate = Convert.ToDateTime(reader["transactiondate"])
+
 						}); 
 					}
 				}
@@ -102,7 +117,7 @@ namespace myfinAPI.Data
 					using var command = new MySqlCommand(@"SELECT *
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
-								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + ";", _conn);
+								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + " Order by ed.name, et.transactiondate;", _conn);
 
 					
 					using (var reader = command.ExecuteReader())
@@ -145,6 +160,18 @@ namespace myfinAPI.Data
 			}
 			return true;
 		}
+		public bool RemoveTransaction(EquityTransaction tran)
+		{
+
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				string dt = tran.tranDate.ToString("yyyy-MM-dd");
+				using var command = new MySqlCommand(@"DELETE FROM myfin.equitytransactions WHERE ISIN='"+tran.equityId+"' AND transactiondate='"+dt+"';", _conn);
+				int result = command.ExecuteNonQuery();
+			}
+			return true;
+		}
 
 		public bool postGoldTransaction(EquityTransaction tran)
 		{
@@ -164,9 +191,10 @@ namespace myfinAPI.Data
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
+				 
 				_conn.Open();
 				string dt = tran.transactionDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"INSERT INTO myfin.bankdetail ( amt, useracctid,roi,datetotransaction,userid) 
+				using var command = new MySqlCommand(@"REPLACE INTO myfin.bankdetail ( amt, useracctid,roi,datetotransaction,userid) 
 												VALUES ( " + tran.amt + ",'" + tran.acctId + "'," + tran.roi + ",'" + dt + "'," + tran.userid + ");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
@@ -204,8 +232,8 @@ namespace myfinAPI.Data
 				{
 					assetTypeList.Add(new DashboardDetail()
 					{
-						total = Convert.ToDouble(reader["total"]),
-						assetName = reader["name"].ToString()
+						Total = Convert.ToDouble(reader["total"]),
+						AssetName = reader["name"].ToString()
 
 					});
 				}
@@ -228,8 +256,8 @@ namespace myfinAPI.Data
 				{
 					assetTypeList.Add(new DashboardDetail()
 					{
-						total = Convert.ToDouble(reader["total"]),
-						assetName = reader["name"].ToString()
+						Total = Convert.ToDouble(reader["total"]),
+						AssetName = reader["name"].ToString()
 
 					});
 				}
@@ -314,19 +342,52 @@ namespace myfinAPI.Data
 						acctType = reader["assettype"].ToString(),
 						amt = Convert.ToDouble(reader["amt"]),
 						roi = Convert.ToDouble(reader["roi"]),
-						transactionDate = Convert.ToDateTime(reader["datetotransaction"])
+						transactionDate = Convert.ToDateTime(reader["datetotransaction"]),
+						userid= (int)reader["userid"]
 					});
 				}
 			}
 			return assetTypeList;
 		}
 
+		public IList<ShareInfo> searchshare(string name)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				IList<ShareInfo> _eqs = new List<ShareInfo>();
+				using var command = new MySqlCommand(@"select * from myfin.equitydetails where name like '" + name + "%';", _conn);
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					_eqs.Add(new ShareInfo()
+					{
+						 fullName  = reader["Name"].ToString(),
+						id = reader["isin"].ToString()
+					});
+				}
+				return _eqs;
+			}
+		}
+		public double GetDividend(string assetId, DateTime after, DateTime before)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+
+				using var command = new MySqlCommand(@"select sum(dividend) from myfin.dividend
+							where isin='"+assetId+"' AND dtupdated >= '"+after.ToString("yyyy-MM-dd") +"' AND dtupdated<='"+ before.ToString("yyyy-MM-dd") +"' group by  isin;", _conn);
+				var result = command.ExecuteScalar();
+				if (result is null)
+					return 0;
+				return (double)result;
+			}
+		}
 		public EquityBase GetLivePrice (string assetId)
 		{
 			EquityBase _eq = new EquityBase();
 			using (MySqlConnection _conn = new MySqlConnection(connString))
-			{
-			
+			{			
 				_conn.Open();
 				using var command = new MySqlCommand(@"SELECT dtUpdated,liveprice,description
 											FROM myfin.equitydetails ed
@@ -345,7 +406,7 @@ namespace myfinAPI.Data
 							_eq.livePrice = Convert.ToDouble(reader["liveprice"]);							
 						}
 						else
-							_eq.desctiption = reader["description"].ToString();
+							_eq.description = reader["description"].ToString();
 					}
 				}
 			}

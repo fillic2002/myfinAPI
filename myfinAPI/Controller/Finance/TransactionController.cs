@@ -20,7 +20,7 @@ namespace myfinAPI.Controller
 			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();
 		}
 		[HttpGet("tran/details")]
-		public void GetTransaction(int portfolioId)
+		public void GetTransaction()
 		{
 			ComponentFactory.GetWebScrapperObject().GetTransaction();
 		}
@@ -37,6 +37,13 @@ namespace myfinAPI.Controller
 			}
 			return false;
 		}
+
+		[HttpPost("deletetransction")]
+		public ActionResult<bool> PostTransaction(EquityTransaction tran)
+		{
+			return ComponentFactory.GetMySqlObject().RemoveTransaction(tran);
+		}
+
 	}
 }
 

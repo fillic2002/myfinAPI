@@ -11,7 +11,7 @@ namespace myfinAPI.Model
 		public string equityId { get; set; }
 		public string symbol { get; set; }
 		public double livePrice { get; set; }
-		public string desctiption { get; set; }
+		public string description { get; set; }
 	}
 	public class AssetBase
 	{

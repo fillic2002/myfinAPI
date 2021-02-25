@@ -15,6 +15,8 @@ namespace myfinAPI.Model
 		public string EquityName { get; set; }
 		public string symobl { get; set; }
 		public int equityType { get; set; }
+		public double dividend{ get; set; }
+		public DateTime trandate { get; set; }
 
 	}
 	public class Ibasefolio

@@ -34,8 +34,10 @@ namespace myfinAPI.Controller
 					}
 					else
 					{
+						finalFolio[indx].dividend=GetDividend(eq.equityId, eq.tranDate, finalFolio[indx].trandate, eq.qty);
 						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
-						finalFolio[indx].avgprice += eq.price * eq.qty; ;
+						finalFolio[indx].avgprice += eq.price * eq.qty;
+						 
 					}
 				}				
 				else
@@ -47,17 +49,37 @@ namespace myfinAPI.Controller
 					avgprice=eq.price*eq.qty,
 					EquityId = eq.equityId,
 					symobl =eq.symbol,
-					equityType = eq.typeAsset
+					equityType = eq.typeAsset,
+					livePrice =eq.livePrice,
+					trandate =eq.tranDate
+				
 					});
 				}
 			}
+			//var tasks = new List<Task>();
+			//var response = Task.Factory.StartNew(ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n));
+			
 			finalFolio.ForEach(
 				async n => {
 					n.avgprice = n.avgprice / n.qty;
-					n.livePrice = Convert.ToDouble(await ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n));
+					n.dividend = GetDividend(n.EquityId, DateTime.Now, n.trandate, n.qty);
 				}) ;
-			
+		 
 			return finalFolio;
+		}
+
+		public double GetDividend(string id, DateTime before,DateTime after, double qty)
+		{
+			return qty*ComponentFactory.GetMySqlObject().GetDividend(id, after, before);
+		}
+		public double getLivePrice(portfolio n)
+		{
+			Task<double> task = new Task<double>(() =>
+			{
+				return ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n);
+			});
+			task.Start();
+			return task.Result;
 		}
 
 		[HttpGet("GetAllfolio")]

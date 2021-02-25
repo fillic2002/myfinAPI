@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
+using myfinAPI.Factory;
 using myfinAPI.Model;
 
 namespace myfinAPI.Controller
@@ -36,16 +37,13 @@ namespace myfinAPI.Controller
 			return obj.getShare().ToArray();
 		}
 
-		//[HttpGet("GetLivePrice")]
-		//public ActionResult<IEnumerable<EquityTransaction>> GetLivePrice(IList<EquityTransaction> listOfShare)
-		//{
-		//	WebScrapper obj = new WebScrapper();
+		[HttpGet("search/{name}")]
+		public ActionResult<IEnumerable<ShareInfo>> search(string name)
+		{
 
-		//	obj.GetLivePriceAsync(listOfShare[0].symbol ,listOfShare[0].equityId);
+			return ComponentFactory.GetMySqlObject().searchshare(name).ToArray();		
 
-		//	return listOfShare.ToArray();
-
-		//}
+		}
 
 
 	}

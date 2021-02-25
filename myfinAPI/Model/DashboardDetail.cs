@@ -8,8 +8,8 @@ namespace myfinAPI.Model
 	public class DashboardDetail
 	{
 		public string Id { get; set; }
-		public string assetName { get; set; }
-		public double total { get; set; }
+		public string AssetName { get; set; }
+		public double Total { get; set; }
 		
 	}
 }
