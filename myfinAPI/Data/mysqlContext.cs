@@ -47,14 +47,14 @@ namespace myfinAPI.Data
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
 						on ed.ISIN= st.isin
-						where st.portfolioId=" + portfolioID;
+						where st.portfolioId=" + portfolioID + " order by transactiondate asc";
 				}
 				else
 				{
 					query= @"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
-						on ed.ISIN= st.isin";
+						on ed.ISIN= st.isin order by transactiondate asc";
 				}
 				using var command = new MySqlCommand(query, _conn);
 				
@@ -219,7 +219,7 @@ namespace myfinAPI.Data
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total,aty.name
+				using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total,SUM(et.qty*ed.liveprice) as current ,aty.name
 								from myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on ed.isin = et.isin
@@ -232,9 +232,9 @@ namespace myfinAPI.Data
 				{
 					assetTypeList.Add(new DashboardDetail()
 					{
-						Total = Convert.ToDouble(reader["total"]),
-						AssetName = reader["name"].ToString()
-
+						Invested = Convert.ToDouble(reader["total"]),
+						AssetName = reader["name"].ToString(),
+						CurrentValue = Convert.ToDouble(reader["current"])
 					});
 				}
 			}
@@ -245,7 +245,7 @@ namespace myfinAPI.Data
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				using var command = new MySqlCommand(@"select sum(currentvalue) as total,ast.name
+				using var command = new MySqlCommand(@"select sum(currentvalue) as current,sum(purchaseprc) as invst, ast.name
 									from myfin.propertytransaction pro
 									join myfin.assettype ast
 									on ast.idassettype=pro.assettype
@@ -256,9 +256,9 @@ namespace myfinAPI.Data
 				{
 					assetTypeList.Add(new DashboardDetail()
 					{
-						Total = Convert.ToDouble(reader["total"]),
-						AssetName = reader["name"].ToString()
-
+						Invested = Convert.ToDouble(reader["invst"]),
+						AssetName = reader["name"].ToString(),
+						CurrentValue = Convert.ToDouble(reader["current"]),
 					});
 				}
 			}			 
@@ -312,7 +312,8 @@ namespace myfinAPI.Data
 					assetTypeList.Add(new TotalBankAsset()
 					{
 						totalAmt = Convert.ToDouble(reader["total"]),
-						actType = reader["name"].ToString()
+						actType = reader["name"].ToString(),
+
 					});
 				}
 			} 
