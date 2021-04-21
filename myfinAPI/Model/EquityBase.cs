@@ -12,6 +12,7 @@ namespace myfinAPI.Model
 		public string symbol { get; set; }
 		public double livePrice { get; set; }
 		public string description { get; set; }
+		public string sector { get; set; }
 	}
 	public class AssetBase
 	{

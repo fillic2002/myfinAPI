@@ -51,7 +51,8 @@ namespace myfinAPI.Controller
 					symobl =eq.symbol,
 					equityType = eq.typeAsset,
 					livePrice =eq.livePrice,
-					trandate =eq.tranDate
+					trandate =eq.tranDate,
+					sector=eq.sector
 				
 					});
 				}

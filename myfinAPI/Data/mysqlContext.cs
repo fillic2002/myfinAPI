@@ -43,7 +43,7 @@ namespace myfinAPI.Data
 				string query;
 				if (portfolioID != 0)
 				{
-					query = @"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
+					query = @"SELECT ed.sector,ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
 						on ed.ISIN= st.isin
@@ -51,7 +51,7 @@ namespace myfinAPI.Data
 				}
 				else
 				{
-					query= @"SELECT ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
+					query= @"SELECT ed.sector,ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
 						on ed.ISIN= st.isin order by transactiondate asc";
@@ -73,7 +73,8 @@ namespace myfinAPI.Data
 							symbol = reader["symbol"].ToString(),
 							typeAsset = Convert.ToInt32(reader["assettypeid"]),
 							livePrice= Convert.ToDouble(reader["liveprice"]),
-							tranDate = Convert.ToDateTime(reader["transactiondate"])
+							tranDate = Convert.ToDateTime(reader["transactiondate"]),
+							sector = reader["sector"].ToString()
 
 						}); 
 					}
@@ -180,7 +181,7 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"INSERT INTO myfin.propertytransaction ( assettype, dtofpurchase,assetvalue,qty,portfolioid) 
+				using var command = new MySqlCommand(@"INSERT INTO myfin.propertytransaction ( assettype, dtofpurchase,purchaseprc,qty,portfolioid) 
 												VALUES ( " + tran.typeAsset + ",'" + dt + "','" + tran.price + "'," + tran.qty + "," + tran.portfolioId + ");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
