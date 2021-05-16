@@ -118,7 +118,7 @@ namespace myfinAPI.Data
 					using var command = new MySqlCommand(@"SELECT *
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
-								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + " Order by ed.name, et.transactiondate;", _conn);
+								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + " Order by et.transactiondate desc;", _conn);
 
 					
 					using (var reader = command.ExecuteReader())
@@ -423,7 +423,7 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				using var command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
-					where portfolioid=" + portfolioId + ";", _conn);
+					where portfolioid=" + portfolioId + " order by year, qtr asc;", _conn);
 				using var reader = command.ExecuteReader();
 
 				while (reader.Read())
