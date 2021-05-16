@@ -415,5 +415,29 @@ namespace myfinAPI.Data
 			return _eq;
 
 		}
+
+		public IList<AssetHistory> GetAssetSnapshot(int portfolioId)
+		{
+			IList<AssetHistory> snapshots = new List<AssetHistory>();
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				using var command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
+					where portfolioid=" + portfolioId + ";", _conn);
+				using var reader = command.ExecuteReader();
+
+				while (reader.Read())
+				{
+					snapshots.Add(new AssetHistory() { 
+						qtr = Convert.ToInt32(reader["qtr"]),
+						Dividend = Convert.ToDouble(reader["dividend"]),
+						Investment = Convert.ToDouble(reader["invstmt"]),
+						AssetValue = Convert.ToDouble(reader["assetvalue"]),
+						year = Convert.ToInt32(reader["year"]),
+					});
+				}
+				return snapshots;
+			}
+		}
 	}
 }

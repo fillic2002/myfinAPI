@@ -91,6 +91,10 @@ namespace myfinAPI.Controller
 			return obj.getUserfolio().ToArray();
 
 		}
-
+		[HttpGet("GetFolioSnapshot/{portfolioId}")]
+		public ActionResult<IEnumerable<AssetHistory>> GetFolioSnapshot(int portfolioId)
+		{	
+			return ComponentFactory.GetMySqlObject().GetAssetSnapshot(portfolioId).ToArray();
+		}
 	}
 }
