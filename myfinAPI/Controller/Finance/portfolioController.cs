@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
 using myfinAPI.Factory;
 using myfinAPI.Model;
+using myfinAPI.Model.Domain;
 
 namespace myfinAPI.Controller
 {
@@ -34,11 +35,11 @@ namespace myfinAPI.Controller
 					}
 					else
 					{
-						finalFolio[indx].dividend=GetDividend(eq.equityId, eq.tranDate, finalFolio[indx].trandate, eq.qty);
 						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
 						finalFolio[indx].avgprice += eq.price * eq.qty;
 						 
 					}
+					
 				}				
 				else
 				{
@@ -57,21 +58,52 @@ namespace myfinAPI.Controller
 					});
 				}
 			}
-			//var tasks = new List<Task>();
-			//var response = Task.Factory.StartNew(ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n));
 			
 			finalFolio.ForEach(
 				async n => {
 					n.avgprice = n.avgprice / n.qty;
-					n.dividend = GetDividend(n.EquityId, DateTime.Now, n.trandate, n.qty);
+					n.dividend = CalculateDividend(n.EquityId, tranDetails);
 				}) ;
 		 
 			return finalFolio;
 		}
-
-		public double GetDividend(string id, DateTime before,DateTime after, double qty)
+		/// <summary>
+		/// Calculate dividend details till today since the date of first purchase
+		/// </summary>
+		/// <param name="companyId"></param>
+		/// <param name="before"></param>
+		/// <param name="after"></param>
+		/// <param name="qty"></param>
+		/// <returns></returns>
+		public double CalculateDividend(string companyId, IList<EquityTransaction> t)
 		{
-			return qty*ComponentFactory.GetMySqlObject().GetDividend(id, after, before);
+			IList<dividend> divDetails = new List<dividend>();
+			ComponentFactory.GetMySqlObject().GetDividend(companyId, divDetails);			 
+
+			double dividend = 0;
+			foreach (dividend div in divDetails)
+			{
+				double q = 0;
+
+				foreach (EquityTransaction tran in t)
+				{
+					if (tran.equityId == div.companyid && tran.tranDate < div.dt)
+					{
+						if (tran.tranType == "B")
+							q += tran.qty;
+						else
+							q -= tran.qty;
+					}
+				}
+
+				if (q > 0)
+				{					 
+					dividend += q * div.value;
+					//if(p.folioId==2)
+					//	Console.WriteLine("EQUITY:"+div.companyid +" Dividend:"+ equities[div.companyid]);
+				}
+			}
+			return dividend;
 		}
 		public double getLivePrice(portfolio n)
 		{

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using myfinAPI.Model;
+using myfinAPI.Model.Domain;
 using MySqlConnector;
 
 namespace myfinAPI.Data
@@ -371,18 +372,45 @@ namespace myfinAPI.Data
 				return _eqs;
 			}
 		}
-		public double GetDividend(string assetId, DateTime after, DateTime before)
+		public IList<dividend> getDividend(string name)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				IList<dividend> _eqs = new List<dividend>();
+				using var command = new MySqlCommand(@"select * from myfin.dividend where ISIN= '" + name + "';", _conn);
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					_eqs.Add(new dividend()
+					{
+						dt = Convert.ToDateTime(reader["dtupdated"]),
+						companyid = reader["isin"].ToString(),
+						value= Convert.ToDouble(reader["dividend"])
+					});
+				}
+				return _eqs;
+			}
+		}
+		public void GetDividend(string assetId,IList<dividend> d )
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
 
-				using var command = new MySqlCommand(@"select sum(dividend) from myfin.dividend
-							where isin='"+assetId+"' AND dtupdated >= '"+after.ToString("yyyy-MM-dd") +"' AND dtupdated<='"+ before.ToString("yyyy-MM-dd") +"' group by  isin;", _conn);
-				var result = command.ExecuteScalar();
-				if (result is null)
-					return 0;
-				return (double)result;
+				using var command = new MySqlCommand(@"select * from myfin.dividend
+							where isin='" + assetId + "';", _conn);
+				var reader = command.ExecuteReader();
+
+				while (reader.Read())
+				{
+					d.Add(new dividend()
+					{
+						value = Convert.ToDouble(reader["dividend"]),
+						companyid = reader["ISIN"].ToString(),
+						dt =Convert.ToDateTime(reader["dtupdated"])
+					}) ;
+				}				
 			}
 		}
 		public EquityBase GetLivePrice (string assetId)

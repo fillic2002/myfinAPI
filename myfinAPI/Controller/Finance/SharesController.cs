@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
 using myfinAPI.Factory;
 using myfinAPI.Model;
+using myfinAPI.Model.Domain;
 
 namespace myfinAPI.Controller
 {
@@ -42,6 +43,13 @@ namespace myfinAPI.Controller
 		{
 
 			return ComponentFactory.GetMySqlObject().searchshare(name).ToArray();		
+
+		}
+		[HttpGet("getdividend/{name}")]
+		public ActionResult<IEnumerable<dividend>> getdividend(string name)
+		{
+
+			return ComponentFactory.GetMySqlObject().getDividend(name).ToArray();
 
 		}
 
