@@ -14,6 +14,7 @@ namespace myfinAPI.Model
 		public int qtr { get; set; }
 		public int year { get; set; }
 		public int qty { get; set; }
+		public int Assettype { get; set; }
 
 	}
 }

@@ -24,6 +24,11 @@ namespace myfinAPI.Controller
 		{
 			ComponentFactory.GetWebScrapperObject().GetTransaction();
 		}
+		[HttpGet("tran/{portfolioId}/{equity}")]
+		public ActionResult<IEnumerable<EquityTransaction>> GetTransaction(int portfolioId, string equity)
+		{
+			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId, equity).ToArray();
+		}
 		[HttpPost("updatefolio")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{

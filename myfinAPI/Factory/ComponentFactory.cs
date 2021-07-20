@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using myfinAPI.Business;
 using myfinAPI.Data;
 
 namespace myfinAPI.Factory
@@ -10,6 +11,7 @@ namespace myfinAPI.Factory
 	{
 		private static mysqlContext _mysqlComponent;
 		private static WebScrapper _webScraperComponent;
+		private static Portfolio _portfolioComponent;
 
 		public static mysqlContext GetMySqlObject()
 		{
@@ -23,6 +25,12 @@ namespace myfinAPI.Factory
 			if (_webScraperComponent == null)
 				_webScraperComponent = new WebScrapper();
 			return _webScraperComponent;
+		}
+		public static Portfolio GetPortfolioObject()
+		{
+			if (_portfolioComponent == null)
+				_portfolioComponent = new Portfolio();
+			return _portfolioComponent;
 		}
 
 

@@ -48,9 +48,7 @@ namespace myfinAPI.Controller
 		[HttpGet("getdividend/{name}")]
 		public ActionResult<IEnumerable<dividend>> getdividend(string name)
 		{
-
 			return ComponentFactory.GetMySqlObject().getDividend(name).ToArray();
-
 		}
 
 

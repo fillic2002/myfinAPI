@@ -7,6 +7,7 @@ using myfinAPI.Data;
 using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
+using myfinAPI.Model.DTO;
 
 namespace myfinAPI.Controller
 {
@@ -28,16 +29,14 @@ namespace myfinAPI.Controller
 				if(indx>=0)
 				{
 					if (eq.tranType == "S")
-					{
-						//update
+					{						
 						finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
 						finalFolio[indx].avgprice -= eq.price * eq.qty;
 					}
 					else
 					{
 						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
-						finalFolio[indx].avgprice += eq.price * eq.qty;
-						 
+						finalFolio[indx].avgprice += eq.price * eq.qty;						 
 					}
 					
 				}				
@@ -58,15 +57,24 @@ namespace myfinAPI.Controller
 					});
 				}
 			}
-			
+			int inde = finalFolio.FindIndex(x => x.qty == 0);
+			if (inde > 0)
+			{
+				finalFolio.RemoveAt(inde);
+			}
+
 			finalFolio.ForEach(
-				async n => {
-					n.avgprice = n.avgprice / n.qty;
-					n.dividend = CalculateDividend(n.EquityId, tranDetails);
-				}) ;
+				 n => {
+					if (n.qty >= 1)
+					{
+						n.avgprice = n.avgprice / n.qty;
+						n.dividend = CalculateDividend(n.EquityId, tranDetails);
+					}
+				});
 		 
 			return finalFolio;
 		}
+
 		/// <summary>
 		/// Calculate dividend details till today since the date of first purchase
 		/// </summary>
@@ -123,10 +131,16 @@ namespace myfinAPI.Controller
 			return obj.getUserfolio().ToArray();
 
 		}
-		[HttpGet("GetFolioSnapshot/{portfolioId}")]
-		public ActionResult<IEnumerable<AssetHistory>> GetFolioSnapshot(int portfolioId)
+		[HttpGet("getAssetHistory/{portfolioId}/{isShare}")]
+		public ActionResult<IEnumerable<AssetHistory>> GetFolioSnapshot(int portfolioId,int isShare)
 		{	
-			return ComponentFactory.GetMySqlObject().GetAssetSnapshot(portfolioId).ToArray();
+			return ComponentFactory.GetMySqlObject().GetAssetSnapshot(portfolioId, isShare).ToArray();
 		}
+		[HttpGet("GetCashFlowStatment/{portfolioId}/{pastMonth}")]
+		public ActionResult<IEnumerable<CashFlow>> GetFolioCashFlow(int portfolioId, int pastMonth)
+		{
+			return ComponentFactory.GetPortfolioObject().GetCashFlowStm(portfolioId,pastMonth).ToArray();
+		}
+
 	}
 }
