@@ -237,7 +237,7 @@ namespace myfinAPI.Data
 				 
 				_conn.Open();
 				string dt = tran.transactionDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"REPLACE INTO myfin.bankdetail ( amt, useracctid,roi,datetotransaction,userid) 
+				using var command = new MySqlCommand(@"REPLACE INTO myfin.bankdetail ( amt, useracctid,roi,dateoftransaction,userid) 
 												VALUES ( " + tran.amt + ",'" + tran.acctId + "'," + tran.roi + ",'" + dt + "'," + tran.userid + ");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
@@ -262,7 +262,7 @@ namespace myfinAPI.Data
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as total,SUM(et.qty*ed.liveprice) as current ,aty.name
+				using var command = new MySqlCommand(@"select SUM(et.qty*et.price) as invstmnt,SUM(et.qty*ed.liveprice) as current ,aty.name
 								from myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on ed.isin = et.isin
@@ -275,7 +275,7 @@ namespace myfinAPI.Data
 				{
 					assetTypeList.Add(new DashboardDetail()
 					{
-						Invested = Convert.ToDouble(reader["total"]),
+						Invested = Convert.ToDouble(reader["invstmnt"]),
 						AssetName = reader["name"].ToString(),
 						CurrentValue = Convert.ToDouble(reader["current"])
 					});
@@ -341,8 +341,8 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				using var command = new MySqlCommand(@"SELECT sum(amt) as total,ast.name FROM myfin.bankdetail bd
-							join myfin.bankaccountinfo bi 
-							on bi.acctid =bd.useracctId
+							join myfin.bankaccounttype bi 
+							on bi.accttypeid =bd.useracctId
 							join myfin.assettype ast
 							on ast.idAssetType = bi.accttype
 							WHERE isActive=1
@@ -370,8 +370,8 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				using var command = new MySqlCommand(@"select * from myfin.bankdetail bd
-													join myfin.bankaccountinfo ba
-													ON bd.useracctid=ba.acctid
+													join myfin.bankaccounttype ba
+													ON bd.useracctid=ba.accttypeid
 													where isactive=1;", _conn);
 					 
 
@@ -386,7 +386,7 @@ namespace myfinAPI.Data
 						acctType = reader["assettype"].ToString(),
 						amt = Convert.ToDouble(reader["amt"]),
 						roi = Convert.ToDouble(reader["roi"]),
-						transactionDate = Convert.ToDateTime(reader["datetotransaction"]),
+						transactionDate = Convert.ToDateTime(reader["dateoftransaction"]),
 						userid= (int)reader["userid"]
 					});
 				}
@@ -484,40 +484,93 @@ namespace myfinAPI.Data
 			return _eq;
 
 		}
-
-		public IList<AssetHistory> GetAssetSnapshot(int portfolioId, int isShare)
+		public IList<AssetHistory> GetAssetSnapshot()
 		{
 			IList<AssetHistory> snapshots = new List<AssetHistory>();
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				MySqlCommand command;
-				if (portfolioId > 0)
-				{
-				 command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
-					where portfolioid=" + portfolioId + " and assettype="+isShare+" order by year asc, qtr asc;", _conn);
-				}
-				else
-				{
-					command= new MySqlCommand(@"SELECT sum(assetvalue) assetvalue ,sum(invstmt) invstmt,SUM(dividend) 
-							dividend, qtr,year,assettype FROM myfin.assetsnapshot 
-						group by qtr, year,assettype order by year asc, qtr asc;", _conn);
-				}
-				using var reader = command.ExecuteReader();
+				MySqlCommand command = null;
+				command = new MySqlCommand(@"SELECT qtr,year, sum(assetvalue)as assetvalue,sum(dividend)as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+					group by qtr,year order by year asc, qtr asc;", _conn);
 
-				while (reader.Read())
+				using var reader = command.ExecuteReader();
+				try
 				{
-					snapshots.Add(new AssetHistory() { 
-						qtr = Convert.ToInt32(reader["qtr"]),
-						Dividend = Convert.ToDouble(reader["dividend"]),
-						Investment = Convert.ToDouble(reader["invstmt"]),
-						AssetValue = Convert.ToDouble(reader["assetvalue"]),
-						year = Convert.ToInt32(reader["year"]),
-						Assettype = Convert.ToInt32(reader["assettype"])
-					});
+					while (reader.Read())
+					{
+						snapshots.Add(new AssetHistory()
+						{
+							qtr = Convert.ToInt32(reader["qtr"]),
+							Dividend = Convert.ToDouble(reader["dividend"]),
+							Investment = Convert.ToDouble(reader["invstmt"]),
+							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							year = Convert.ToInt32(reader["year"]),
+						}); ;
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
 				}
 				return snapshots;
 			}
+		}
+		public IList<AssetHistory> GetAssetSnapshot(int portfolioId, int astType)
+		{
+			IList<AssetHistory> snapshots = new List<AssetHistory>();
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				MySqlCommand command=null;
+				if (portfolioId == 0)
+				{
+					 
+						command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
+					 order by year asc, qtr asc;", _conn);
+					
+				}
+				else if (portfolioId > 0)
+				{
+				 command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
+					where portfolioid=" + portfolioId + " and assettype="+astType+" order by year asc, qtr asc;", _conn);
+				}
+				else if(astType >=2)
+				{
+					command= new MySqlCommand(@"SELECT * from (SELECT sum(invstmt) invstmt,sum(dividend) dividend,
+										sum(assetvalue) assetvalue,qtr,year,assettype FROM myfin.assetsnapshot 
+										group by qtr,year				 
+										order by year desc, qtr desc LIMIT 120)
+                                        varGetCashFlowStatment1 ORDER by year asc, qtr asc;", _conn);
+				}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						snapshots.Add(new AssetHistory()
+						{
+							qtr = Convert.ToInt32(reader["qtr"]),
+							Dividend = Convert.ToDouble(reader["dividend"]),
+							Investment = Convert.ToDouble(reader["invstmt"]),
+							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							year = Convert.ToInt32(reader["year"]),
+							portfolioId = Convert.ToInt32(reader["portfolioid"]==null?0: reader["portfolioid"]),
+							Assettype = (reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"])
+						}); ;
+					}
+				}
+				catch(Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+				return snapshots;
+			}
+		}
+
+		public void GetPropertyHistoricalValue(IList<AssetHistory> hst)
+		{
+
 		}
 	}
 }

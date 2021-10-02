@@ -13,8 +13,9 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class DashboardController
 	{
-		[HttpGet]
-		public ActionResult<IEnumerable<DashboardDetail>> GetDashboard()
+		
+		[HttpGet("getDashboard")]
+		public ActionResult<IEnumerable<DashboardDetail>> GetDashboardSnapshot()
 		{
 			IList<DashboardDetail> dashBoard = new List<DashboardDetail>();			
  
@@ -28,11 +29,15 @@ namespace myfinAPI.Controller
 					AssetName = asset.actType,
 					Invested = asset.totalAmt,
 					CurrentValue = asset.totalAmt
-
-
 				}); ;
 			}
 			return dashBoard.ToArray();
+		}
+		[HttpGet("getDashboard/History")]
+		public ActionResult<IEnumerable<AssetHistory>> GetAssetHistory(int userid)
+		{			 
+			return ComponentFactory.GetDashboardObject().GetAllAssetHistory(userid).ToArray();
+				
 		}
 	}
 }

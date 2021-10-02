@@ -12,7 +12,14 @@ namespace myfinAPI.Factory
 		private static mysqlContext _mysqlComponent;
 		private static WebScrapper _webScraperComponent;
 		private static Portfolio _portfolioComponent;
+		private static Dashboard _dashboard;
 
+		public static Dashboard GetDashboardObject()
+		{
+			if (_dashboard == null)
+				_dashboard = new Dashboard();
+			return _dashboard;
+		}
 		public static mysqlContext GetMySqlObject()
 		{
 			if (_mysqlComponent == null)

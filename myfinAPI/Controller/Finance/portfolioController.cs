@@ -136,6 +136,11 @@ namespace myfinAPI.Controller
 		{	
 			return ComponentFactory.GetMySqlObject().GetAssetSnapshot(portfolioId, isShare).ToArray();
 		}
+		[HttpGet("getAssetsHistory")]
+		public ActionResult<IEnumerable<AssetHistory>> GetUsersSnapshot(int userid)
+		{
+			return ComponentFactory.GetDashboardObject().GetAllAssetHistory(userid).ToArray();
+		}
 		[HttpGet("GetCashFlowStatment/{portfolioId}/{pastMonth}")]
 		public ActionResult<IEnumerable<CashFlow>> GetFolioCashFlow(int portfolioId, int pastMonth)
 		{
