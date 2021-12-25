@@ -13,7 +13,21 @@ namespace myfinAPI.Factory
 		private static WebScrapper _webScraperComponent;
 		private static Portfolio _portfolioComponent;
 		private static Dashboard _dashboard;
+		private static Banking _bankAc;
+		private static Transaction _transaction;
 
+		public static Transaction GetTranObject()
+		{
+			if (_transaction == null)
+				_transaction = new Transaction();
+			return _transaction;
+		}
+		public static Banking GetBankObject()
+		{
+			if (_bankAc == null)
+				_bankAc = new Banking();
+			return _bankAc;
+		}
 		public static Dashboard GetDashboardObject()
 		{
 			if (_dashboard == null)

@@ -7,16 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
 using MySqlConnector;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Data
 {
-	public class mysqlContext :DbContext
+	public class mysqlContext : DbContext
 	{
 		string connString = "Server = localhost; Database = myfin; Uid = root; Pwd = Welcome@1; ";
-		 
+
 		public IList<ShareInfo> getShare()
 		{
-			using (MySqlConnection _conn= new MySqlConnection(connString))
+			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
 				using var command = new MySqlCommand("SELECT * FROM myfin.shareinfo;", _conn);
@@ -32,7 +33,7 @@ namespace myfinAPI.Data
 					});
 				}
 				return sharesList;
-			}			
+			}
 		}
 
 		public IList<EquityTransaction> getPortfolio(int portfolioID)
@@ -52,13 +53,13 @@ namespace myfinAPI.Data
 				}
 				else
 				{
-					query= @"SELECT ed.sector,ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
+					query = @"SELECT ed.sector,ed.name, st.qty, st.action,st.price,ed.symbol,ed.ISIN,ed.assettypeid,ed.liveprice,st.transactiondate
 						FROM myfin.equitytransactions as st 
 						inner join myfin.equitydetails as ed
 						on ed.ISIN= st.isin order by transactiondate asc";
 				}
 				using var command = new MySqlCommand(query, _conn);
-				
+
 
 				using (var reader = command.ExecuteReader())
 				{
@@ -73,16 +74,16 @@ namespace myfinAPI.Data
 							equityId = reader["ISIN"].ToString(),
 							symbol = reader["symbol"].ToString(),
 							typeAsset = Convert.ToInt32(reader["assettypeid"]),
-							livePrice= Convert.ToDouble(reader["liveprice"]),
+							livePrice = Convert.ToDouble(reader["liveprice"]),
 							tranDate = Convert.ToDateTime(reader["transactiondate"]),
 							sector = reader["sector"].ToString()
 
-						}); 
+						});
 					}
 				}
 			}
 			return tranList;
-			
+
 		}
 
 		public IList<portfolio> getUserfolio()
@@ -93,7 +94,7 @@ namespace myfinAPI.Data
 				_conn.Open();
 				using var command = new MySqlCommand(@"SELECT folioname, portfolioid FROM myfin.portfolio;", _conn);
 				using var reader = command.ExecuteReader();
-				
+
 				while (reader.Read())
 				{
 					folioList.Add(new portfolio()
@@ -109,19 +110,31 @@ namespace myfinAPI.Data
 
 		public IList<EquityTransaction> getTransaction(int portfolioId)
 		{
-			 
-				try
-				{
-					IList<EquityTransaction> transactionList = new List<EquityTransaction>();
+
+			try
+			{
+				IList<EquityTransaction> transactionList = new List<EquityTransaction>();
 				using (MySqlConnection _conn = new MySqlConnection(connString))
 				{
 					_conn.Open();
-					using var command = new MySqlCommand(@"SELECT et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid
+					MySqlCommand command;
+					if (portfolioId == 0)
+					{
+						 
+						command = new MySqlCommand(@"SELECT et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid
+								FROM myfin.equitytransactions as et
+								join myfin.equitydetails ed
+								on et.isin = ed.isin Order by et.transactiondate desc;", _conn);
+					}
+					else
+					{
+						command = new MySqlCommand(@"SELECT et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + " Order by et.transactiondate desc;", _conn);
+					}
 
-					
+					 
 					using (var reader = command.ExecuteReader())
 					{
 						while (reader.Read())
@@ -143,14 +156,14 @@ namespace myfinAPI.Data
 				}
 				return transactionList;
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				string msg = ex.Message;
 				return null;
-			} 
+			}
 
 		}
-		public IList<EquityTransaction> getTransaction(int portfolioId,string equityId)
+		public IList<EquityTransaction> getTransaction(int portfolioId, string equityId)
 		{
 
 			try
@@ -160,7 +173,7 @@ namespace myfinAPI.Data
 				{
 					_conn.Open();
 					using var command = new MySqlCommand(@"select * from myfin.equitytransactions etr
-												where ISIN='"+ equityId + "' and portfolioid=" + portfolioId + " Order by transactiondate desc;", _conn);
+												where ISIN='" + equityId + "' and portfolioid=" + portfolioId + " Order by transactiondate desc;", _conn);
 
 					using (var reader = command.ExecuteReader())
 					{
@@ -210,7 +223,7 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"DELETE FROM myfin.equitytransactions WHERE ISIN='"+tran.equityId+"' AND transactiondate='"+dt+"';", _conn);
+				using var command = new MySqlCommand(@"DELETE FROM myfin.equitytransactions WHERE ISIN='" + tran.equityId + "' AND transactiondate='" + dt + "';", _conn);
 				int result = command.ExecuteNonQuery();
 			}
 			return true;
@@ -234,15 +247,40 @@ namespace myfinAPI.Data
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
-				 
+
 				_conn.Open();
 				string dt = tran.transactionDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"REPLACE INTO myfin.bankdetail ( amt, useracctid,roi,dateoftransaction,userid) 
+				using var command = new MySqlCommand(@"REPLACE INTO myfin.bankdetail ( amt, accttypeid,roi,dateoftransaction,folioid) 
 												VALUES ( " + tran.amt + ",'" + tran.acctId + "'," + tran.roi + ",'" + dt + "'," + tran.userid + ");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
 			return true;
 
+		}
+		public void GetPFMonthlyDetails(IList<AssetHistory> hstry, int folioid)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+
+				_conn.Open();
+				 
+				using var command = new MySqlCommand(@"SELECT *	FROM myfin.assetsnapshot Where portfolioid=" + folioid + " and assettype = 3 " +
+					"group by qtr,year order by year desc, qtr desc;", _conn);
+				int result = command.ExecuteNonQuery();
+				using var reader = command.ExecuteReader();
+
+				while (reader.Read())
+				{
+					hstry.Add(new AssetHistory()
+					{
+						qtr = Convert.ToInt32(reader["qtr"]),
+						Dividend = Convert.ToDouble(reader["dividend"]),
+						Investment = Convert.ToDouble(reader["invstmt"]),
+						AssetValue = Convert.ToDouble(reader["assetvalue"]),
+						year = Convert.ToInt32(reader["year"])
+					});
+				}
+			}			
 		}
 
 		public bool UpdateLivePrice(string isin,double liveprice)
@@ -257,7 +295,7 @@ namespace myfinAPI.Data
 			}
 			return true;
 		}
-		public void GetSharesDetails(IList<DashboardDetail> assetTypeList)
+		public void GetShareInvReturn(IList<DashboardDetail> assetTypeList)
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
@@ -342,7 +380,7 @@ namespace myfinAPI.Data
 				_conn.Open();
 				using var command = new MySqlCommand(@"SELECT sum(amt) as total,ast.name FROM myfin.bankdetail bd
 							join myfin.bankaccounttype bi 
-							on bi.accttypeid =bd.useracctId
+							on bi.accttypeid =bd.accttypeid
 							join myfin.assettype ast
 							on ast.idAssetType = bi.accttype
 							WHERE isActive=1
@@ -371,7 +409,7 @@ namespace myfinAPI.Data
 				_conn.Open();
 				using var command = new MySqlCommand(@"select * from myfin.bankdetail bd
 													join myfin.bankaccounttype ba
-													ON bd.useracctid=ba.accttypeid
+													ON bd.accttypeid=ba.accttypeid
 													where isactive=1;", _conn);
 					 
 
@@ -382,12 +420,12 @@ namespace myfinAPI.Data
 					assetTypeList.Add(new BankDetail()
 					{
 						acctName = reader["Bank Name"].ToString(),
-						acctId = (int)reader["useracctid"],
+						acctId = (int)reader["accttypeid"],
 						acctType = reader["assettype"].ToString(),
 						amt = Convert.ToDouble(reader["amt"]),
 						roi = Convert.ToDouble(reader["roi"]),
 						transactionDate = Convert.ToDateTime(reader["dateoftransaction"]),
-						userid= (int)reader["userid"]
+						userid= (int)reader["folioid"]
 					});
 				}
 			}
@@ -484,6 +522,92 @@ namespace myfinAPI.Data
 			return _eq;
 
 		}
+
+		public IList<AssetHistory> GetAssetSnapshotByYear(int assetId)
+		{
+			IList<AssetHistory> assetReturn = new List<AssetHistory>();
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				MySqlCommand command = null;
+				if (assetId == 0)
+				{
+					command = new MySqlCommand(@"SELECT year,qtr, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+								where qtr in (1,12) or (qtr=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))
+								group by qtr,year	order by year asc;", _conn);
+				}
+				else {
+					command = new MySqlCommand(@"SELECT year,qtr,assettype, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+								where (qtr in (1,12) or (qtr=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))) and assettype="+assetId+" " +
+								"group by qtr,year, assettype  order by year asc; ", _conn);
+					}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						assetReturn.Add(new AssetHistory()
+						{
+							qtr = Convert.ToInt32(reader["qtr"]),
+							Dividend = Convert.ToDouble(reader["dividend"]),
+							Investment = Convert.ToDouble(reader["invstmt"]),
+							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							year = Convert.ToInt32(reader["year"])
+							
+						}); ;
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+				return assetReturn;
+			}
+		}
+
+		public IList<AssetHistory> GetYearlySnapShot(int portfolioId, int assetId, bool YTD)
+		{
+			IList<AssetHistory> assetReturn = new List<AssetHistory>();
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				MySqlCommand command = null;
+				if (YTD)
+				{
+					command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
+							where portfolioid=" + portfolioId + " and assettype=" + assetId + " and year="+ DateTime.Now.Year +" order by qtr desc limit 1;", _conn);
+				}
+				else
+				{
+					command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
+							where portfolioid=" + portfolioId + " and assettype=" + assetId + " and (qtr in (1,12) " +
+							" or (qtr=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))) order by year asc, qtr asc;", _conn);
+				}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						assetReturn.Add(new AssetHistory()
+						{
+							qtr = Convert.ToInt32(reader["qtr"]),
+							Dividend = Convert.ToDouble(reader["dividend"]),
+							Investment = Convert.ToDouble(reader["invstmt"]),
+							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							year = Convert.ToInt32(reader["year"]),
+							portfolioId = Convert.ToInt32(reader["portfolioid"] == null ? 0 : reader["portfolioid"]),
+							Assettype = (reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"])
+						}); ;
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+				return assetReturn;
+			}
+		}
+		
 		public IList<AssetHistory> GetAssetSnapshot()
 		{
 			IList<AssetHistory> snapshots = new List<AssetHistory>();
@@ -526,7 +650,7 @@ namespace myfinAPI.Data
 				if (portfolioId == 0)
 				{
 					 
-						command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
+					command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
 					 order by year asc, qtr asc;", _conn);
 					
 				}

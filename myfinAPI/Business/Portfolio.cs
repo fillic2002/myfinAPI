@@ -63,7 +63,78 @@ namespace myfinAPI.Business
 			}
 			return cashFlowMonths;			
 		}
+		public IList<AssetReturn> GetAssetReturn(int assetId)
+		{
+			IList<AssetHistory> asstHistory = ComponentFactory.GetMySqlObject().GetAssetSnapshotByYear(assetId);
+			IList<AssetReturn> astReturn = new List<AssetReturn>();
+			double startYrAsset = 0;
+			double startYrInvst = 0;
+			double netCurr = 0;
+			double netInvt = 0;
+			foreach (AssetHistory asset in asstHistory)
+			{
+				if (startYrAsset == 0 || asset.qtr==1)
+				{
+					startYrAsset = asset.AssetValue;
+					startYrInvst = asset.Investment;
+				}
+				else if(asset.qtr==12 || (asset.qtr==DateTime.Now.Month && asset.year==DateTime.Now.Year))
+				{
+					astReturn.Add(new AssetReturn()
+					{
+						year = asset.year,
+						Return = ((asset.AssetValue - startYrAsset) - (asset.Investment - startYrInvst)) * 100 / (startYrAsset + (asset.Investment - startYrInvst)),
+					});
+					startYrAsset = asset.AssetValue;
+					startYrInvst = asset.Investment;
+				}				
+			}
+			
+			return astReturn;
+		}
+		public IList<AssetReturn> GetAssetReturn(int folioid, int assetId)
+		{
+			IList<AssetHistory> asstHistory = ComponentFactory.GetMySqlObject().GetYearlySnapShot(folioid, assetId, false);
+			IList<AssetReturn> astReturn = new List<AssetReturn>();
+			if (asstHistory.Count == 0)
+				return astReturn;
+			double startYrAsset = 0;
+			double startYrInvst = 0;
+			double netCurr;
+			double netInvt;
+			foreach (AssetHistory asset in asstHistory)
+			{
+				if (startYrAsset == 0 || asset.qtr == 1)
+				{
+					startYrAsset = asset.AssetValue;
+					startYrInvst = asset.Investment;
+				}
+				else if (asset.qtr == 12 || (asset.qtr == DateTime.Now.Month && asset.year == DateTime.Now.Year))
+				{
+					astReturn.Add(new AssetReturn()
+					{
+						PortfolioId= folioid,
+						year = asset.year,
+						Return = ((asset.AssetValue - startYrAsset) - (asset.Investment - startYrInvst)) * 100 / (startYrAsset ),
+					});
+					startYrAsset = asset.AssetValue;
+					startYrInvst = asset.Investment;
+				}
+			}
+			//IList<AssetHistory> asstHistoryNew = ComponentFactory.GetMySqlObject().GetYearlySnapShot(folioid, assetId, true);
+			// netCurr = asstHistoryNew[0].AssetValue - previousYrValue;
+			// netInvt = asstHistoryNew[0].Investment - previousYrInvst;
 
+			//astReturn.Add(new AssetReturn()
+			//{
+			//	year = asstHistoryNew[0].year,				
+			//	Return = ((netCurr - netInvt) * 100) / (previousYrValue + netInvt),
+			//	PortfolioId = folioid
+			//});
+			
+			return astReturn;
+
+		}
 		private void GetCashFlowForPortfolio(IList<AssetHistory> asstHstry, IList<CashFlow> cashFlow)
 		{
 			double netInvestAdded = 0, prevMonthInvst = 0, cumMonthlyAsst = 0, preMonthAsst = 0, preMonthlyAsstMF = 0, preMonthInvstMFD = 0;

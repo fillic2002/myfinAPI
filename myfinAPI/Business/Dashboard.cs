@@ -16,7 +16,7 @@ namespace myfinAPI.Business
 			//ComponentFactory.GetMySqlObject().GetPropertyHistoricalValue(astHistory);
 			//var bankdetails = ComponentFactory.GetMySqlObject().GetBankAssetDetails().ToArray();
 
-			return astHistory.Where(x=>x.year>=2015).ToArray();
+			return astHistory.Where(x=>x.year>=2012).ToArray();
 			//foreach (TotalBankAsset asset in bankdetails)
 			//{
 			//	dashBoard.Add(new DashboardDetail()

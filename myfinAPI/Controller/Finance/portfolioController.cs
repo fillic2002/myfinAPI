@@ -37,8 +37,7 @@ namespace myfinAPI.Controller
 					{
 						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
 						finalFolio[indx].avgprice += eq.price * eq.qty;						 
-					}
-					
+					}					
 				}				
 				else
 				{
@@ -52,8 +51,7 @@ namespace myfinAPI.Controller
 					equityType = eq.typeAsset,
 					livePrice =eq.livePrice,
 					trandate =eq.tranDate,
-					sector=eq.sector
-				
+					sector=eq.sector				
 					});
 				}
 			}
@@ -88,20 +86,20 @@ namespace myfinAPI.Controller
 			IList<dividend> divDetails = new List<dividend>();
 			ComponentFactory.GetMySqlObject().GetDividend(companyId, divDetails);			 
 
+			
 			double dividend = 0;
 			foreach (dividend div in divDetails)
 			{
 				double q = 0;
 
-				foreach (EquityTransaction tran in t)
+				foreach (EquityTransaction tran in t.Where(x=>x.equityId==div.companyid && x.tranDate<div.dt))
 				{
-					if (tran.equityId == div.companyid && tran.tranDate < div.dt)
-					{
+					
 						if (tran.tranType == "B")
 							q += tran.qty;
 						else
 							q -= tran.qty;
-					}
+					
 				}
 
 				if (q > 0)
@@ -146,6 +144,15 @@ namespace myfinAPI.Controller
 		{
 			return ComponentFactory.GetPortfolioObject().GetCashFlowStm(portfolioId,pastMonth).ToArray();
 		}
-
+		[HttpGet("getAssetsReturn/{portfolioId}/{assetId}")]
+		public ActionResult<IEnumerable<AssetReturn>> GetAssetReturn(int portfolioId, int assetId)
+		{
+			return ComponentFactory.GetPortfolioObject().GetAssetReturn(portfolioId, assetId).ToArray();
+		}
+		[HttpGet("getAssetsReturn/{assetId}")]
+		public ActionResult<IEnumerable<AssetReturn>> GetAssetReturn(int assetId)
+		{
+			return ComponentFactory.GetPortfolioObject().GetAssetReturn(assetId).ToArray();
+		}
 	}
 }

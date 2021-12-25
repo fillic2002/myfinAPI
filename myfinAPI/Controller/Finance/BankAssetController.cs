@@ -35,5 +35,10 @@ namespace myfinAPI.Controller
 		{		
 			return ComponentFactory.GetMySqlObject().postBankTransaction(transactionDetail);			
 		}
+		[HttpGet("GetPfDetails/{folioid}")]
+		public ActionResult<IEnumerable<AssetHistory>> GetPFAcTransaction(int folioid)
+		{
+			return ComponentFactory.GetBankObject().GetPFDetails(folioid).ToArray();
+		}
 	}
 }

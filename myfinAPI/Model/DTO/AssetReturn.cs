@@ -8,7 +8,7 @@ namespace myfinAPI.Model.DTO
 	public class AssetReturn
 	{
 		public int PortfolioId { get; set; }
-		public double MonthReturn { get; set; }
-		public DateTime Monthyear { get; set; }
+		public double Return { get; set; }
+		public int year { get; set; }
 	}
 }

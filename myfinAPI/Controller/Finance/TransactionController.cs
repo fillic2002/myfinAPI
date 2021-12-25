@@ -24,6 +24,11 @@ namespace myfinAPI.Controller
 		{
 			ComponentFactory.GetWebScrapperObject().GetTransaction();
 		}
+		[HttpGet("getInvestment")]
+		public ActionResult<IEnumerable<AssetHistory>> GetInvestmentPerYear()
+		{
+			return ComponentFactory.GetTranObject().GetYearlyInvestment().ToArray();
+		}
 		[HttpGet("tran/{portfolioId}/{equity}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetTransaction(int portfolioId, string equity)
 		{

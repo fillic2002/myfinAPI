@@ -19,7 +19,7 @@ namespace myfinAPI.Controller
 		{
 			IList<DashboardDetail> dashBoard = new List<DashboardDetail>();			
  
-			ComponentFactory.GetMySqlObject().GetSharesDetails(dashBoard);
+			ComponentFactory.GetMySqlObject().GetShareInvReturn(dashBoard);
 			ComponentFactory.GetMySqlObject().GetPropertyCurrentValue(dashBoard);
 			var bankdetails = ComponentFactory.GetMySqlObject().GetBankAssetDetails().ToArray();
 			foreach (TotalBankAsset asset in bankdetails)
