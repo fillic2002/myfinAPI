@@ -10,7 +10,7 @@ namespace myfinAPI.Model.DTO
 		public int portfolioId { get; set; }
 		public double Cashflow { get; set; }
 		public double Dividend { get;set; }		
-		public int qtr { get; set; }
+		public int month { get; set; }
 		public int year { get; set; }		
 		public int Assettype { get; set; }
 	}

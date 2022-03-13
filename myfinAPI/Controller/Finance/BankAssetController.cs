@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using myfinAPI.Data;
 using myfinAPI.Factory;
 using myfinAPI.Model;
+using myfinAPI.Model.Domain;
 
 namespace myfinAPI.Controller
 {
@@ -35,10 +36,15 @@ namespace myfinAPI.Controller
 		{		
 			return ComponentFactory.GetMySqlObject().postBankTransaction(transactionDetail);			
 		}
-		[HttpGet("GetPfDetails/{folioid}")]
-		public ActionResult<IEnumerable<AssetHistory>> GetPFAcTransaction(int folioid)
+		[HttpGet("GetPfYearlyDetails/{folioid}/{typeofAct}")]
+		public ActionResult<IEnumerable<PFAccount>> GetPFAcTransaction(int folioid,int typeofAct)
 		{
-			return ComponentFactory.GetBankObject().GetPFDetails(folioid).ToArray();
+			return ComponentFactory.GetBankObject().GetPFYearWiseDetails(folioid, typeofAct).ToArray();
+		}
+		[HttpGet("GetAccoutType")]
+		public ActionResult<IEnumerable<AcctType>> GetAccountType(int folioid)
+		{
+			return ComponentFactory.GetBankObject().GetAcctType(folioid).ToArray();
 		}
 	}
 }

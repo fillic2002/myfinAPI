@@ -13,6 +13,9 @@ namespace myfinAPI.Model
 		public double livePrice { get; set; }
 		public string description { get; set; }
 		public string sector { get; set; }
+		public double PB { get; set; }
+		public double MarketCap{ get; set; }
+
 	}
 	public class AssetBase
 	{

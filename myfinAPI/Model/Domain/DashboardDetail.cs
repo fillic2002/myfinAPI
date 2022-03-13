@@ -7,10 +7,11 @@ namespace myfinAPI.Model
 {
 	public class DashboardDetail
 	{
-		public string Id { get; set; }
+		public int Id { get; set; }
 		public string AssetName { get; set; }
 		public double Invested { get; set; }
 		public double CurrentValue { get; set; }
+		public double XirrReturn { get; set; }
 
 	}
 }

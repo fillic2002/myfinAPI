@@ -15,7 +15,14 @@ namespace myfinAPI.Factory
 		private static Dashboard _dashboard;
 		private static Banking _bankAc;
 		private static Transaction _transaction;
+		private static Xirr _xirr;
 
+		public static Xirr GetXirrObject()
+		{
+			if (_xirr == null)
+				_xirr = new Xirr();
+			return _xirr;
+		}
 		public static Transaction GetTranObject()
 		{
 			if (_transaction == null)

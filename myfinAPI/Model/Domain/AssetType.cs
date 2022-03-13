@@ -13,10 +13,10 @@ namespace myfinAPI.Model
             PF = 3,
             PPF = 4,
             Debt_MF = 5,
-            Flat = 6,
-            Gold = 7,
-            Plot = 8,
-            Bank = 9
+            Bank = 6,
+            Plot = 7,
+            Flat = 8,
+            Gold = 12
         }
     }
 }

@@ -19,58 +19,62 @@ namespace myfinAPI.Controller
 		[HttpGet("Getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
-			List<portfolio> finalFolio = new List<portfolio>();
-			IList<EquityTransaction> tranDetails = ComponentFactory.GetMySqlObject().getPortfolio(portfolioId).ToArray();
-			 
+			List<portfolio> PortFolios = new List<portfolio>();			
+			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios).ToArray();
+			return PortFolios.Where(x=>x.qty>0).ToArray();
+			//List<portfolio> finalFolio = new List<portfolio>();
+			//IList<EquityTransaction> tranDetails= new List<EquityTransaction>();
 
-			foreach(EquityTransaction eq in tranDetails)
-			{
-				int indx = finalFolio.FindIndex(x => x.EquityName== eq.equityName);
-				if(indx>=0)
-				{
-					if (eq.tranType == "S")
-					{						
-						finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
-						finalFolio[indx].avgprice -= eq.price * eq.qty;
-					}
-					else
-					{
-						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
-						finalFolio[indx].avgprice += eq.price * eq.qty;						 
-					}					
-				}				
-				else
-				{
-					//add
-					finalFolio.Add(new portfolio() { 
-					EquityName = eq.equityName,
-					qty = eq.qty,
-					avgprice=eq.price*eq.qty,
-					EquityId = eq.equityId,
-					symobl =eq.symbol,
-					equityType = eq.typeAsset,
-					livePrice =eq.livePrice,
-					trandate =eq.tranDate,
-					sector=eq.sector				
-					});
-				}
-			}
-			int inde = finalFolio.FindIndex(x => x.qty == 0);
-			if (inde > 0)
-			{
-				finalFolio.RemoveAt(inde);
-			}
+			//ComponentFactory.GetMySqlObject().getTransactionDetails(portfolioId,tranDetails);			 
 
-			finalFolio.ForEach(
-				 n => {
-					if (n.qty >= 1)
-					{
-						n.avgprice = n.avgprice / n.qty;
-						n.dividend = CalculateDividend(n.EquityId, tranDetails);
-					}
-				});
-		 
-			return finalFolio;
+			//foreach(EquityTransaction eq in tranDetails)
+			//{
+			//	int indx = finalFolio.FindIndex(x => x.EquityName== eq.equityName);
+			//	if(indx>=0)
+			//	{
+			//		if (eq.tranType == "S")
+			//		{						
+			//			finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
+			//			finalFolio[indx].avgprice -= eq.price * eq.qty;
+			//		}
+			//		else
+			//		{
+			//			finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
+			//			finalFolio[indx].avgprice += eq.price * eq.qty;						 
+			//		}					
+			//	}				
+			//	else
+			//	{
+			//		//add
+			//		finalFolio.Add(new portfolio() { 
+			//		EquityName = eq.equityName,
+			//		qty = eq.qty,
+			//		avgprice=eq.price*eq.qty,
+			//		EquityId = eq.equityId,
+			//		symobl =eq.symbol,
+			//		equityType = eq.assetType,
+			//		livePrice =eq.livePrice,
+			//		trandate =eq.tranDate,
+			//		sector=eq.sector				
+			//		});
+			//	}
+			//}
+			//int inde = finalFolio.FindIndex(x => x.qty == 0);
+			//if (inde > 0)
+			//{
+			//	finalFolio.RemoveAt(inde);
+			//}
+
+			//finalFolio.ForEach(
+			//	 n => {
+			//		if (n.qty >= 1)
+			//		{
+			//			n.avgprice = n.avgprice / n.qty;
+			//			n.dividend = CalculateDividend(n.EquityId, tranDetails);
+			//		}
+			//	});
+
+			//return finalFolio;
 		}
 
 		/// <summary>
@@ -84,22 +88,18 @@ namespace myfinAPI.Controller
 		public double CalculateDividend(string companyId, IList<EquityTransaction> t)
 		{
 			IList<dividend> divDetails = new List<dividend>();
-			ComponentFactory.GetMySqlObject().GetDividend(companyId, divDetails);			 
-
+			ComponentFactory.GetMySqlObject().GetDividend(companyId, divDetails);
 			
 			double dividend = 0;
 			foreach (dividend div in divDetails)
 			{
 				double q = 0;
-
 				foreach (EquityTransaction tran in t.Where(x=>x.equityId==div.companyid && x.tranDate<div.dt))
-				{
-					
+				{					
 						if (tran.tranType == "B")
 							q += tran.qty;
 						else
-							q -= tran.qty;
-					
+							q -= tran.qty;					
 				}
 
 				if (q > 0)
@@ -132,7 +132,7 @@ namespace myfinAPI.Controller
 		[HttpGet("getAssetHistory/{portfolioId}/{isShare}")]
 		public ActionResult<IEnumerable<AssetHistory>> GetFolioSnapshot(int portfolioId,int isShare)
 		{	
-			return ComponentFactory.GetMySqlObject().GetAssetSnapshot(portfolioId, isShare).ToArray();
+			return ComponentFactory.GetPortfolioObject().GetAssetHistory(portfolioId, isShare).ToArray();
 		}
 		[HttpGet("getAssetsHistory")]
 		public ActionResult<IEnumerable<AssetHistory>> GetUsersSnapshot(int userid)
@@ -140,9 +140,14 @@ namespace myfinAPI.Controller
 			return ComponentFactory.GetDashboardObject().GetAllAssetHistory(userid).ToArray();
 		}
 		[HttpGet("GetCashFlowStatment/{portfolioId}/{pastMonth}")]
-		public ActionResult<IEnumerable<CashFlow>> GetFolioCashFlow(int portfolioId, int pastMonth)
+		public ActionResult<IEnumerable<CashflowDTO>> GetFolioCashFlow(int portfolioId, int pastMonth)
 		{
 			return ComponentFactory.GetPortfolioObject().GetCashFlowStm(portfolioId,pastMonth).ToArray();
+		}
+		[HttpGet("GetCashFlowOutStatment/{portfolioId}/{pastMonth}")]
+		public ActionResult<IEnumerable<CashflowDTO>> GetFolioCashFlowOut(int portfolioId, int pastMonth)
+		{
+			return ComponentFactory.GetPortfolioObject().GetCashFlowOutStm(portfolioId, pastMonth).ToArray();
 		}
 		[HttpGet("getAssetsReturn/{portfolioId}/{assetId}")]
 		public ActionResult<IEnumerable<AssetReturn>> GetAssetReturn(int portfolioId, int assetId)

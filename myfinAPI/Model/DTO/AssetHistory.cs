@@ -11,7 +11,7 @@ namespace myfinAPI.Model
 		public double AssetValue { get; set; }
 		public double Dividend { get; set; }
 		public double Investment { get; set; }
-		public int qtr { get; set; }
+		public int month { get; set; }
 		public int year { get; set; }
 		public int qty { get; set; }
 		public int Assettype { get; set; }
