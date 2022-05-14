@@ -22,59 +22,7 @@ namespace myfinAPI.Controller
 			List<portfolio> PortFolios = new List<portfolio>();			
 			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios).ToArray();
 			return PortFolios.Where(x=>x.qty>0).ToArray();
-			//List<portfolio> finalFolio = new List<portfolio>();
-			//IList<EquityTransaction> tranDetails= new List<EquityTransaction>();
-
-			//ComponentFactory.GetMySqlObject().getTransactionDetails(portfolioId,tranDetails);			 
-
-			//foreach(EquityTransaction eq in tranDetails)
-			//{
-			//	int indx = finalFolio.FindIndex(x => x.EquityName== eq.equityName);
-			//	if(indx>=0)
-			//	{
-			//		if (eq.tranType == "S")
-			//		{						
-			//			finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
-			//			finalFolio[indx].avgprice -= eq.price * eq.qty;
-			//		}
-			//		else
-			//		{
-			//			finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
-			//			finalFolio[indx].avgprice += eq.price * eq.qty;						 
-			//		}					
-			//	}				
-			//	else
-			//	{
-			//		//add
-			//		finalFolio.Add(new portfolio() { 
-			//		EquityName = eq.equityName,
-			//		qty = eq.qty,
-			//		avgprice=eq.price*eq.qty,
-			//		EquityId = eq.equityId,
-			//		symobl =eq.symbol,
-			//		equityType = eq.assetType,
-			//		livePrice =eq.livePrice,
-			//		trandate =eq.tranDate,
-			//		sector=eq.sector				
-			//		});
-			//	}
-			//}
-			//int inde = finalFolio.FindIndex(x => x.qty == 0);
-			//if (inde > 0)
-			//{
-			//	finalFolio.RemoveAt(inde);
-			//}
-
-			//finalFolio.ForEach(
-			//	 n => {
-			//		if (n.qty >= 1)
-			//		{
-			//			n.avgprice = n.avgprice / n.qty;
-			//			n.dividend = CalculateDividend(n.EquityId, tranDetails);
-			//		}
-			//	});
-
-			//return finalFolio;
+			
 		}
 
 		/// <summary>
@@ -126,7 +74,7 @@ namespace myfinAPI.Controller
 		{
 			mysqlContext obj = new mysqlContext();
 			
-			return obj.getUserfolio().ToArray();
+			return obj.GetUserfolio().ToArray();
 
 		}
 		[HttpGet("getAssetHistory/{portfolioId}/{isShare}")]

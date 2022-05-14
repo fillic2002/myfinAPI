@@ -19,6 +19,8 @@ namespace myfinAPI.Model
 		public DateTime trandate { get; set; }
 		public string sector { get; set; }
 
+		public double xirr { get; set; }
+
 	}
 	public class Ibasefolio
 	{

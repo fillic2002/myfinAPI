@@ -20,12 +20,12 @@ namespace myfinAPI.Business
 		public IEnumerable<PFAccount> GetPFYearWiseDetails(int folioid,int type)
 		{
 			List<PFAccount> pfDetails = new List<PFAccount>();
-			ComponentFactory.GetMySqlObject().GetPFMonthlyDetails(pfDetails, folioid, type);
-			int year = 2011;
+			ComponentFactory.GetMySqlObject().GetPFYearlyDetails(pfDetails, folioid, type);
+			int year = 2005;
 			while(year <= DateTime.Now.Year)
 			{
 				IList<PFAccount> detail=pfDetails.Where(x=>x.Year==year).ToList();
-				if (detail.Count() == 1)
+				if (detail.Count() == 1 )
 				{
 					pfDetails.Add(new PFAccount() { 
 						Folioid = folioid, 
@@ -33,9 +33,30 @@ namespace myfinAPI.Business
 						InvestmentEmplr = 0, 
 						Pension = 0,
 						Year=year,
-						TypeOfTransaction =  detail[0].TypeOfTransaction=="int"?"Deposit":"int"
+						TypeOfTransaction =  detail[0].TypeOfTransaction=="int"?"deposit":"int"
+					});
+				}else if(detail.Count==0)
+				{
+					pfDetails.Add(new PFAccount()
+					{
+						Folioid = folioid,
+						InvestmentEmp = 0,
+						InvestmentEmplr = 0,
+						Pension = 0,
+						Year = year,
+						TypeOfTransaction = "deposit" 
+					});
+					pfDetails.Add(new PFAccount()
+					{
+						Folioid = folioid,
+						InvestmentEmp = 0,
+						InvestmentEmplr = 0,
+						Pension = 0,
+						Year = year,
+						TypeOfTransaction = "int"
 					});
 				}
+
 				year++;
 			}
 			//double PreviousBalance = 0;
@@ -44,9 +65,8 @@ namespace myfinAPI.Business
 			//	act.Balance = PreviousBalance + act.InvestmentEmp + act.InvestmentEmplr + act.Pension;
 			//	PreviousBalance = act.Balance;
 			//}
-			pfDetails.Sort();
-			 
-				return pfDetails;
+			pfDetails.Sort();			 
+			return pfDetails;
 		}
 
 		public void GetSalaryAndRental(int pastmonths, IList<CashFlow> cashFlow)

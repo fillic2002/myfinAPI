@@ -18,12 +18,17 @@ namespace myfinAPI.Controller
 		[HttpGet("getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
 		{
-			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId).ToArray();
+			return ComponentFactory.GetMySqlObject().GetTransaction(portfolioId).ToArray();
 		}
 		[HttpGet("tran/details")]
 		public void GetTransaction()
 		{
 			ComponentFactory.GetWebScrapperObject().GetTransaction();
+		}
+		[HttpGet("tran/{folio}/{month}/{year}/{asstType}")]
+		public ActionResult<IEnumerable<EquityTransaction>> GetTransaction(int folio, int month, int asstType, int year)
+		{
+			return ComponentFactory.GetMySqlObject().GetTransaction(folio, month, asstType,year).ToArray();
 		}
 		[HttpGet("getInvestment/{flag}")]
 		public ActionResult<IEnumerable<AssetHistory>> GetInvestmentPerYear(string flag)
@@ -40,14 +45,14 @@ namespace myfinAPI.Controller
 		[HttpGet("tran/{portfolioId}/{equity}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetTransaction(int portfolioId, string equity)
 		{
-			return ComponentFactory.GetMySqlObject().getTransaction(portfolioId, equity).ToArray();
+			return ComponentFactory.GetMySqlObject().GetTransaction(portfolioId, equity).ToArray();
 		}
 		[HttpPost("updatefolio")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{
 			if (tran.assetType == 1 || tran.assetType==2 ||  tran.assetType == 5)
 			{
-				return ComponentFactory.GetMySqlObject().postEquityTransaction(tran);
+				return ComponentFactory.GetMySqlObject().PostEquityTransaction(tran);
 			}
 			else if (tran.assetType == 12 || tran.assetType == 7 || tran.assetType == 8)
 			{
@@ -59,7 +64,8 @@ namespace myfinAPI.Controller
 		[HttpPost("AddBankTransaction")]
 		public ActionResult<bool> PostBankTransaction(BankTransaction tran)
 		{
-			 return ComponentFactory.GetMySqlObject().postBankTransaction(tran);
+			  
+			return ComponentFactory.GetTranObject().AddTransaction(tran);
 			  
 		}
 

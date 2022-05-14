@@ -16,11 +16,13 @@ namespace myfinAPI.Controller
 		
 		[HttpGet("getDashboard")]
 		public ActionResult<IEnumerable<DashboardDetail>> GetDashboardSnapshot()
-		{
-			
+		{			
 			return ComponentFactory.GetDashboardObject().GetAssetSnapshot().ToArray();
-
-			 
+		}
+		[HttpGet("getDashboard/{month}/{year}")]
+		public ActionResult<IEnumerable<DashboardDetail>> GetDashboardSnapshot(int year, int month)
+		{
+			return ComponentFactory.GetDashboardObject().GetAssetSnapshot(year, month).ToArray();
 		}
 		[HttpGet("getDashboard/History")]
 		public ActionResult<IEnumerable<AssetHistory>> GetAssetHistory(int userid)

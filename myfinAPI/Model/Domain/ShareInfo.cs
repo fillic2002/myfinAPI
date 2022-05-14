@@ -11,6 +11,9 @@ namespace myfinAPI.Model
 		public string shortName { get; set; }
 		public string fullName { get; set; }
 		public string livePrice { get; set; }
+		public string desc { get; set; }
+		public string divlink{ get; set; }
+		public string sector { get; set; }
 
 	}
 }

@@ -172,7 +172,7 @@ namespace myfinAPI.Business
 			
 			foreach (AssetHistory asset in asstHistory)
 			{
-				if (startYrAsset == 0 || asset.month==1)
+				if (startYrAsset == 0)
 				{
 					startYrAsset = asset.AssetValue;
 					startYrInvst = asset.Investment;
@@ -193,22 +193,31 @@ namespace myfinAPI.Business
 		}
 		public IList<AssetReturn> GetAssetReturn(int folioid, int assetId)
 		{
-			if (folioid == 0)
-				return GetAssetReturn(assetId);
+			 
 			IList<AssetReturn> astReturn = new List<AssetReturn>();
-			//IList<CashItem> invstYear = new List<CashItem>();
-			//double InvstDiff = 0;
-
-			IList<EquityTransaction> t= ComponentFactory.GetMySqlObject().getTransaction(folioid);
+			IList<dividend> divDetails = new List<dividend>();
+			IList<EquityTransaction> t= ComponentFactory.GetMySqlObject().GetTransaction(folioid);
 			t = t.Where(x => x.assetType == assetId).ToList();
-			IList<AssetHistory> asstHistory = ComponentFactory.GetMySqlObject().GetYearlySnapShot(folioid, assetId, false);
-			
+			IList<AssetHistory> asstHistory;
+			if (folioid > 0)
+			{
+				asstHistory = ComponentFactory.GetMySqlObject().GetYearlySnapShot(folioid, assetId, false);
+			}
+			else
+			{
+				asstHistory = ComponentFactory.GetMySqlObject().GetYearlySnapshot(assetId);
+			}
+			CashItem PreviousYearInvst= new CashItem();
+
+			ComponentFactory.GetMySqlObject().GetYearlyDividend(assetId, divDetails, folioid);
+
 			int year = 2017;
 			while(year <= DateTime.Now.Year)
 			{
 				IList<CashItem> invstYear = new List<CashItem>();
+				double netReturn = 0;
 				IList<EquityTransaction> yearTransaction = t.Where(x => x.tranDate.Year == year).ToList();
-				if (yearTransaction.Count==0 )
+				if (yearTransaction.Count==0 && astReturn.Count==0)
 				{
 					year++;
 					continue;
@@ -216,30 +225,39 @@ namespace myfinAPI.Business
 				IList<AssetHistory> yearSnapshot = asstHistory.Where(y => y.year == year).ToList();
 				foreach(EquityTransaction eqtT in yearTransaction)
 				{
-					if(eqtT.tranType=="B")
-						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = eqtT.price * eqtT.qty });
-					else
-						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = -eqtT.price * eqtT.qty });
-				}
-				if (yearSnapshot.Count == 1)
-				{
-					if (yearSnapshot[0].month == 12)
+					if (eqtT.tranType == "B")
 					{
-						invstYear.Add(new CashItem()
-						{
-							Date = new DateTime(year, 12, 31),
-							Amount = -yearSnapshot[0].AssetValue
-						});
+						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = eqtT.price * eqtT.qty });
+						netReturn -= eqtT.price * eqtT.qty;
+
 					}
 					else
 					{
-						year++;
-						continue;
-					}						
+						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = -eqtT.price * eqtT.qty });
+						netReturn += eqtT.price * eqtT.qty;
+					}
+				}
+				if (yearSnapshot.Count == 1)
+				{	 
+					invstYear.Add(new CashItem()
+						{
+							Date = new DateTime(year, 12, 31),
+							Amount = -yearSnapshot[0].AssetValue							
+						});
+					netReturn += yearSnapshot[0].AssetValue;
+					if (PreviousYearInvst.Amount>0)
+					{
+						invstYear.Add(PreviousYearInvst);
+						netReturn -= PreviousYearInvst.Amount;
+					}
+					PreviousYearInvst = new CashItem()
+					{
+						Date = new DateTime(year, 12, 31),
+						Amount = yearSnapshot[0].AssetValue
+					};				 				
 				}
 				else
-				{
-					//InvstDiff = yearSnapshot[0].AssetValue - yearSnapshot[1].AssetValue;
+				{				 
 					invstYear.Add(new CashItem()
 					{
 						Date = new DateTime(yearSnapshot[0].year, yearSnapshot[0].month,1),
@@ -251,48 +269,11 @@ namespace myfinAPI.Business
 						Amount = -yearSnapshot[1].AssetValue
 					});
 				}
-
-				//invstYear.Add(new CashItem() { Date = new DateTime(year,12,31), Amount= InvstDiff });
+				 
 				var astreturn = Xirr.RunScenario(invstYear);				
-				astReturn.Add(new AssetReturn() { year=year,Return=astreturn*100,PortfolioId=folioid});
+				astReturn.Add(new AssetReturn() { Return=netReturn ,year=year,xirr=astreturn*100,PortfolioId=folioid,dividend=Math.Round(divDetails.First(x=>x.dt.Year==year).value,2)});
 				year++;
-			}
-
-			//IList<AssetReturn> astReturn = new List<AssetReturn>();
-			if (asstHistory.Count == 0)
-				return astReturn;
-			double startYrAsset = 0;
-			double startYrInvst = 0;
-			
-			//foreach (AssetHistory asset in asstHistory)
-			//{
-			//	if (startYrAsset == 0 || asset.month == 1)
-			//	{
-			//		startYrAsset = asset.AssetValue;
-			//		startYrInvst = asset.Investment;
-			//	}
-			//	else if (asset.month == 12 || (asset.month == DateTime.Now.Month && asset.year == DateTime.Now.Year))
-			//	{
-					//astReturn.Add(new AssetReturn()
-					//{
-					//	PortfolioId = folioid,
-					//	year = asset.year,
-					//	Return = ((asset.AssetValue - startYrAsset) - (asset.Investment - startYrInvst)) * 100 / (startYrAsset),
-					//});
-			//		startYrAsset = asset.AssetValue;
-			//		startYrInvst = asset.Investment;
-			//	}
-			//}
-			//IList<AssetHistory> asstHistoryNew = ComponentFactory.GetMySqlObject().GetYearlySnapShot(folioid, assetId, true);
-			// netCurr = asstHistoryNew[0].AssetValue - previousYrValue;
-			// netInvt = asstHistoryNew[0].Investment - previousYrInvst;
-
-			//astReturn.Add(new AssetReturn()
-			//{
-			//	year = asstHistoryNew[0].year,				
-			//	Return = ((netCurr - netInvt) * 100) / (previousYrValue + netInvt),
-			//	PortfolioId = folioid
-			//});
+			}		 		 
 			
 			return astReturn;
 
@@ -372,58 +353,101 @@ namespace myfinAPI.Business
 
 		public IList<portfolio> GetFolio(int portfolioId, List<portfolio> finalFolio)
 		{
-			//List<portfolio> finalFolio = new List<portfolio>();
+			
 			IList<EquityTransaction> tranDetails = new List<EquityTransaction>();
-
+			IList<CashItem> invstYear;
 			ComponentFactory.GetMySqlObject().getTransactionDetails(portfolioId, tranDetails);
-
+			int counter = 0;
 			foreach (EquityTransaction eq in tranDetails)
 			{
-				int indx = finalFolio.FindIndex(x => x.EquityName == eq.equityName);
-				if (indx >= 0)
+				var indx=finalFolio.FindIndex(x => x.EquityName == eq.equityName);
+				IEnumerable<EquityTransaction> selectedEqtTran = tranDetails.Where(x=>x.equityName==eq.equityName);
+				double qty = 0, avgprice=0;
+				if (indx < 0)
 				{
-					if (eq.tranType == "S")
+					invstYear = new List<CashItem>();
+					foreach (EquityTransaction eqt in selectedEqtTran)
 					{
-						finalFolio[indx].qty = finalFolio[indx].qty - eq.qty;
-						finalFolio[indx].avgprice -= eq.price * eq.qty;
+						 
+						if (eqt.tranType == "S")
+						{
+							qty -= eqt.qty;
+							avgprice -= eqt.price * eqt.qty;
+							invstYear.Add(new CashItem()
+							{
+								Date = new DateTime(eqt.tranDate.Year, eqt.tranDate.Month, eqt.tranDate.Day),
+								Amount = eqt.price * eqt.qty
+							});
+						}
+						else
+						{
+							qty += eqt.qty;
+							avgprice += eqt.price * eqt.qty;
+							invstYear.Add(new CashItem()
+							{
+								Date = new DateTime(eqt.tranDate.Year, eqt.tranDate.Month, eqt.tranDate.Day),
+								Amount = -eqt.price * eqt.qty
+							});
+						}
 					}
-					else
+					//Today's Value
+					invstYear.Add(new CashItem()
 					{
-						finalFolio[indx].qty = finalFolio[indx].qty + eq.qty;
-						finalFolio[indx].avgprice += eq.price * eq.qty;
+						Date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day),
+						Amount = eq.livePrice * qty
+					});
+					var astreturn = Xirr.RunScenario(invstYear);
+					if (qty > 0)
+					{
+						finalFolio.Add(new portfolio()
+						{
+							EquityName = eq.equityName,
+							qty = qty,
+							avgprice = avgprice / qty,
+							EquityId = eq.equityId,
+							symobl = eq.symbol,
+							equityType = eq.assetType,
+							livePrice = eq.livePrice,
+							trandate = eq.tranDate,
+							sector = eq.sector,
+							xirr = astreturn*100,
+							dividend = CalculateDividend(eq.equityId, selectedEqtTran.ToList())
+						});
 					}
+					counter++;
 				}
 				else
 				{
 					//add
-					finalFolio.Add(new portfolio()
-					{
-						EquityName = eq.equityName,
-						qty = eq.qty,
-						avgprice = eq.price * eq.qty,
-						EquityId = eq.equityId,
-						symobl = eq.symbol,
-						equityType = eq.assetType,
-						livePrice = eq.livePrice,
-						trandate = eq.tranDate,
-						sector = eq.sector
-					});
+
+					//finalFolio.Add(new portfolio()
+					//{
+					//	EquityName = eq.equityName,
+					//	qty = eq.qty,
+					//	avgprice = eq.price * eq.qty,
+					//	EquityId = eq.equityId,
+					//	symobl = eq.symbol,
+					//	equityType = eq.assetType,
+					//	livePrice = eq.livePrice,
+					//	trandate = eq.tranDate,
+					//	sector = eq.sector
+					//});
 				}
 			}
-			int inde = finalFolio.FindIndex(x => x.qty == 0);
-			if (inde > 0)
-			{
-				finalFolio.RemoveAt(inde);
-			}
+			//int inde = finalFolio.FindIndex(x => x.qty == 0);
+			//if (inde > 0)
+			//{
+			//	finalFolio.RemoveAt(inde);
+			//}
 
-			finalFolio.ForEach(
-				 n => {
-					 if (n.qty >= 1)
-					 {
-						 n.avgprice = n.avgprice / n.qty;
-						 n.dividend = CalculateDividend(n.EquityId, tranDetails);
-					 }
-				 });
+			//finalFolio.ForEach(
+			//	 n => {
+			//		 if (n.qty >= 1)
+			//		 {
+			//			 n.avgprice = n.avgprice / n.qty;
+			//			 n.dividend = CalculateDividend(n.EquityId, tranDetails);
+			//		 }
+			//	 });
 
 			return finalFolio;
 		}

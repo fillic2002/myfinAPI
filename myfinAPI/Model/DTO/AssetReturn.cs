@@ -9,6 +9,8 @@ namespace myfinAPI.Model.DTO
 	{
 		public int PortfolioId { get; set; }
 		public double Return { get; set; }
+		public double xirr { get; set; }
 		public int year { get; set; }
+		public double dividend { get; set; }
 	}
 }

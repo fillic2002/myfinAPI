@@ -17,6 +17,7 @@ namespace myfinAPI.Model
 		public double InvestmentEmplr { get; set; }
 		public double Pension { get; set; }
 		public DateTime DateOfTransaction{ get; set; }
+		public int AccountType { get; set; }
 
 		public int CompareTo([AllowNull] PFAccount other)
 		{

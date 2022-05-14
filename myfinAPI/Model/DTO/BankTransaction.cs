@@ -7,7 +7,7 @@ namespace myfinAPI.Model.DTO
 {
 	public class BankTransaction
 	{
-		public string tranDate { get; set; }
+		public DateTime tranDate { get; set; }
 		public double Amt { get; set; }
 		public int folioId { get; set; }
 		public string tranType { get; set; }
