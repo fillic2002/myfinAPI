@@ -52,7 +52,8 @@ namespace myfinAPI.Controller
 		{
 			if (tran.assetType == 1 || tran.assetType==2 ||  tran.assetType == 5)
 			{
-				return ComponentFactory.GetMySqlObject().PostEquityTransaction(tran);
+				return ComponentFactory.GetTranObject().AddEqtyTransaction(tran);
+					 
 			}
 			else if (tran.assetType == 12 || tran.assetType == 7 || tran.assetType == 8)
 			{
@@ -65,7 +66,7 @@ namespace myfinAPI.Controller
 		public ActionResult<bool> PostBankTransaction(BankTransaction tran)
 		{
 			  
-			return ComponentFactory.GetTranObject().AddTransaction(tran);
+			return ComponentFactory.GetTranObject().AddPFTransaction(tran);
 			  
 		}
 

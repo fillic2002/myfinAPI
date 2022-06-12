@@ -7,18 +7,18 @@ namespace myfinAPI.Model
 {
 	public class portfolio : Ibasefolio
 	{
+		public EquityBase eq { get; set; }
 		public int trasactionId { get; set; }
 		public double avgprice { get; set; }
 		public double qty { get; set; }
-		public double livePrice { get; set; }
-		public string EquityId {get; set;}
-		public string EquityName { get; set; }
-		public string symobl { get; set; }
+		//public double livePrice { get; set; }
+		//public string EquityId {get; set;}
+		//public string EquityName { get; set; }
+		//public string symobl { get; set; }
 		public int equityType { get; set; }
 		public double dividend{ get; set; }
 		public DateTime trandate { get; set; }
-		public string sector { get; set; }
-
+		//public string sector { get; set; }
 		public double xirr { get; set; }
 
 	}
@@ -26,5 +26,6 @@ namespace myfinAPI.Model
 	{
 		public string folioName { get; set; }
 		public int folioID { get; set; }
+		public string Comment{ get; set; }
 	}
 }

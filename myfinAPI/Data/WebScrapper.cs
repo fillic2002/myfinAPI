@@ -7,7 +7,9 @@ using myfinAPI.Factory;
 using myfinAPI.Model;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-
+/// <summary>
+/// Purpose of this Class should be moved to Sandbox as any live webscrapping should be a backend process
+/// </summary>
 namespace myfinAPI.Data
 {
 	public class WebScrapper: IDisposable
@@ -22,10 +24,10 @@ namespace myfinAPI.Data
 		public double GetLivePriceAsync(portfolio folio)
 		{
 			
-			if (folio.symobl == null)
+			if (folio.eq.symbol == null)
 				return 0;
 			EquityBase _eq = new EquityBase();
-			_eq=ComponentFactory.GetMySqlObject().GetLivePrice(folio.EquityId);
+			_eq=ComponentFactory.GetMySqlObject().GetLivePrice(folio.eq.equityId);
 			try
 			{
 
@@ -75,6 +77,12 @@ namespace myfinAPI.Data
 
 		}
 
-		 
+		public void GetEqtDetail(EquityTransaction tran)
+		{
+
+		}
+
+
+
 	}
 }

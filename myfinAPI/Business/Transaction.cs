@@ -105,7 +105,7 @@ namespace myfinAPI.Business
 			result.Add(yearlyHistory);
 		}
 
-		public bool AddTransaction(BankTransaction tran)
+		public bool AddPFTransaction(BankTransaction tran)
 		{
 			if (tran.Description == "PPF-Int" || tran.Description == "PPF-Deposit")
 			{
@@ -125,6 +125,12 @@ namespace myfinAPI.Business
 			}
 			else
 				return ComponentFactory.GetMySqlObject().PostBankTransaction(tran);
+		}
+
+		public bool AddEqtyTransaction(EquityTransaction tran)
+		{
+			//ComponentFactory.GetWebScrapperObject().GetEqtDetail(tran);
+			return ComponentFactory.GetMySqlObject().PostEquityTransaction(tran);
 		}
 
 	}

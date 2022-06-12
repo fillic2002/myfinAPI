@@ -15,7 +15,7 @@ namespace myfinAPI.Model
 		public string sector { get; set; }
 		public double PB { get; set; }
 		public double MarketCap{ get; set; }
-
+		public UInt64 totalShare { get; set; }
 	}
 	public class AssetBase
 	{

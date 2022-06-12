@@ -9,6 +9,7 @@ using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
 using MySqlConnector;
 using static myfinAPI.Model.AssetClass;
+using ExpType = myfinAPI.Model.DTO.ExpType;
 
 namespace myfinAPI.Data
 {
@@ -350,13 +351,11 @@ namespace myfinAPI.Data
 				{
 					command = new MySqlCommand(@"SELECT sum(emp) emp,sum(employer) employer,sum(pension) pension,typeofcredit,year 
 									FROM myfin.pf where Acttype="+type+" group by year, typeofcredit  order by year asc;", _conn);
-
 				}
 				else
 				{
 					 command = new MySqlCommand(@"SELECT sum(emp) emp,sum(employer) employer,sum(pension) pension,typeofcredit,year FROM myfin.pf 
 					 where folioid=" + folioid + " AND Acttype=" + type + " group by year, typeofcredit  order by year asc;", _conn);
-
 				}
 				 
 				using var reader = command.ExecuteReader();
@@ -760,7 +759,223 @@ namespace myfinAPI.Data
 				//return assetReturn;
 			}
 		}
+		public bool ReplaceFolioComment(int folioId, string Comment)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();				
+				
+				MySqlCommand command = null;
+				command = new MySqlCommand(@"UPDATE myfin.portfolio set comment='"+Comment+"' where portfolioid="+folioId+";", _conn);
+				int count= command.ExecuteNonQuery();
+				if (count > 0)
+					return true;
+				else
+					return false;
+			}
+		}
+		public void GetExpenseType( IList<ExpType> t)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
 
+				MySqlCommand command = null;				
+				command = new MySqlCommand(@"select * FROM myfin.expensetype;", _conn);				
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						t.Add(new ExpType()
+						{							
+							expId = Convert.ToInt32(reader["expid"]),
+							expTypeDesc = reader["expdesc"].ToString()							
+						});
+					}
+				}
+				catch (Exception ex)
+				{
+
+					string s = ex.StackTrace;
+				}
+			}
+		}
+		
+		public void GetMontlyFolioExpenseHistory(int folioId, IList<MonthlyExpenseDTO> exp, int pastMonth)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+
+				MySqlCommand command = null;
+				if (folioId > 0)
+				{
+					command = new MySqlCommand(@"select sum(amt) totalamt,folioid,DATE_FORMAT(dtoftransaction, '%m-%Y')my from myfin.expense 
+							WHERE folioid=" + folioId +	" group by Month(dtoftransaction),year(dtoftransaction),folioid;", _conn);
+				}
+				else
+				{
+					command = new MySqlCommand(@"select sum(amt) totalamt,DATE_FORMAT(dtoftransaction, '%m-%Y')my,0 folioid from myfin.expense 
+							group by Month(dtoftransaction), year(dtoftransaction);", _conn);
+				}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						exp.Add(new MonthlyExpenseDTO()
+						{
+							monthYear = reader["my"].ToString(),
+							totalExpAmt = Convert.ToDouble(reader["totalamt"]),
+							folioId = Convert.ToInt32(reader["folioId"])
+						});
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+			}
+		}
+		public void GetMontlyFolioExpense(int folioId, IList<ExpenseDTO> exp,string my)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+
+				MySqlCommand command = null;
+				if (folioId > 0)
+				{
+					command = new MySqlCommand(@"select amt,folioid,DATE_FORMAT(dtoftransaction, '%m-%Y')my,et.* from myfin.expense e 
+							join myfin.expensetype et ON et.expid=e.expid
+							where DATE_FORMAT(dtoftransaction, '%m-%Y')='" + my+"' AND folioid="+ folioId+";", _conn);
+				}
+				else
+				{
+					command = new MySqlCommand(@"select amt ,folioid,DATE_FORMAT(dtoftransaction, '%m-%Y')my,et.* from myfin.expense e
+								join myfin.expensetype et on et.expid=e.expid
+								where DATE_FORMAT(dtoftransaction, '%m-%Y')='" + my+ "';", _conn);
+				}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						exp.Add(new ExpenseDTO()
+						{	
+							amt= Convert.ToDouble(reader["amt"]),
+							 expenseType = new ExpType()
+							 {
+								  expId = Convert.ToInt16(reader["expid"]),
+								  expTypeDesc = reader["expDesc"].ToString()
+							 },
+							folioId = Convert.ToInt32(reader["folioId"])							
+						});
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+			}
+		}
+		public void GetFolioExpense(int folioId, IList<ExpenseDTO> exp)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+
+				MySqlCommand command = null;
+				if (folioId > 0)
+				{
+					command = new MySqlCommand(@"select * from myfin.expense e join myfin.expensetype et ON et.expid=e.expid
+							where folioid=" + folioId + ";", _conn);
+				}
+				else
+				{
+					command = new MySqlCommand(@"select * from myfin.expense e 
+									join myfin.expensetype et ON et.expid=e.expid;", _conn);
+				}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						exp.Add(new ExpenseDTO()
+						{
+							dtOfTran = Convert.ToDateTime(reader["dtOfTransaction"]),
+							amt = Convert.ToDouble(reader["Amt"]),
+							 folioId= Convert.ToInt32(reader["folioId"]),
+							 desc = reader["Description"].ToString()
+						});
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+			}
+		}
+
+		public bool AddExpenseType(ExpType e)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+
+				MySqlCommand command = null;
+				command = new MySqlCommand(@"INSERT INTO myfin.expensetype(expDesc) Value('" + e.expTypeDesc + "');", _conn);
+				int count = command.ExecuteNonQuery();
+				if (count > 0)
+					return true;
+				else
+					return false;
+			}
+		}
+		public bool AddExpense(ExpenseDTO exp)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				try
+				{
+					MySqlCommand command = null;
+					string dt = exp.dtOfTran.ToString("yyyy-MM-dd");
+					command = new MySqlCommand(@"INSERT INTO myfin.expense(dtoftransaction,amt,description,folioid,expId) 
+				Values('" + dt + "'," + exp.amt + ",'" + exp.desc + "'," + exp.folioId + "," + exp.expenseType.expId + "); ", _conn);
+					int count = command.ExecuteNonQuery();
+					if (count > 0)
+						return true;
+					else
+						return false;
+				}
+				catch(Exception ex)
+				{
+					return false;
+				}
+			}
+		}
+
+		public string GetFolioComment(int folioId)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+			 
+				MySqlCommand command = null;
+				if (folioId > 0)
+				{
+					command = new MySqlCommand(@"SELECT comment FROM myfin.portfolio 
+					where portfolioid=" + folioId + ";", _conn);
+				}
+				else
+					return "";
+				
+				
+				return command.ExecuteScalar().ToString();
+			}
+		}
 		public IList<AssetHistory> GetAssetSnapshot()
 		{
 			IList<AssetHistory> snapshots = new List<AssetHistory>();

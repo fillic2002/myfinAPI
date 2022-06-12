@@ -8,6 +8,7 @@ using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
+using ExpType = myfinAPI.Model.DTO.ExpType;
 
 namespace myfinAPI.Controller
 {
@@ -106,6 +107,48 @@ namespace myfinAPI.Controller
 		public ActionResult<IEnumerable<AssetReturn>> GetAssetReturn(int assetId)
 		{
 			return ComponentFactory.GetPortfolioObject().GetAssetReturn(assetId).ToArray();
+		}
+		[HttpPost("AddComment")]
+		public ActionResult<bool> ReplaceComment(portfolio p)
+		{
+			return ComponentFactory.GetPortfolioObject().ReplaceComment(p.folioID,p.Comment);
+			//return true;
+		}
+		[HttpGet("GetfolioComment/{folioid}")]
+		public ActionResult<portfolio> GetComment(int folioid)
+		{
+			return ComponentFactory.GetPortfolioObject().GetFolioComment(folioid);
+		}
+		[HttpGet("GetfolioExpense/{folioid}")]
+		public ActionResult<IList<ExpenseDTO>> GetExpense(int folioid)
+		{
+			return ComponentFactory.GetPortfolioObject().GetExpense(folioid).ToArray();
+		}
+		[HttpGet("GetExpenseType")]
+		public ActionResult<IList<ExpType>> GetExpenseType()
+		{
+			return ComponentFactory.GetPortfolioObject().GetExpenseType().ToArray();
+		}
+		[HttpPost("AddExpenseType")]
+		public ActionResult<bool> AddExpenseType(ExpType t)
+		{
+			return ComponentFactory.GetPortfolioObject().AddExpenseType(t);
+		}
+		[HttpPost("AddExpense")]
+		public ActionResult<bool> AddExpense(ExpenseDTO t)
+		{
+			return ComponentFactory.GetPortfolioObject().AddExpense(t);
+		}
+
+		[HttpGet("GetMonthlyFolioExpense/{folioid}/{my}")]
+		public ActionResult<IList<ExpenseDTO>> GetMonthlyExpense(int folioid,string my)
+		{
+			return ComponentFactory.GetPortfolioObject().GetMonthlyExpense(folioid,my).ToArray();
+		}
+		[HttpGet("GetMonthlyFolioExpenseHistory/{folioid}/{pastMonth}")]
+		public ActionResult<IList<MonthlyExpenseDTO>> GetMonthlyExpenseHistory(int folioid, int pastMonth)
+		{
+			return ComponentFactory.GetPortfolioObject().GetMonthlyExpenseHistory(folioid, pastMonth).ToArray();
 		}
 	}
 }

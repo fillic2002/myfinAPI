@@ -8,6 +8,7 @@ using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
 using static myfinAPI.Business.Xirr;
 using static myfinAPI.Model.AssetClass;
+using ExpType = myfinAPI.Model.DTO.ExpType;
 
 namespace myfinAPI.Business
 {
@@ -150,21 +151,6 @@ namespace myfinAPI.Business
 		}
 		public IList<AssetReturn> GetAssetReturn(int assetId)
 		{
-
-		//Xirr.RunScenario(new[]
-		//	{
-  //              // this scenario fails with Newton's but succeeds with slower Bisection
-  //              new CashItem(new DateTime(2012, 1, 1), -10),
-		//		new CashItem(new DateTime(2012, 2, 1), -10),
-		//		new CashItem(new DateTime(2012, 3, 1), -10),
-		//		new CashItem(new DateTime(2012, 4, 1), -10),
-		//		new CashItem(new DateTime(2012, 5, 1), -10),
-		//		new CashItem(new DateTime(2012, 12, 1), 60),
-
-		//	});
-
-			 
-
 			IList<AssetHistory> asstHistory = ComponentFactory.GetMySqlObject().GetYearlySnapshot(assetId);
 			IList<AssetReturn> astReturn = new List<AssetReturn>();
 			double startYrAsset = 0;
@@ -350,6 +336,56 @@ namespace myfinAPI.Business
 			ComponentFactory.GetMySqlObject().GetAssetSnapshot(astHistory,folioid, assettype);
 			return astHistory;
 		}
+		public bool ReplaceComment(int folioid, string comment)
+		{
+		
+			return ComponentFactory.GetMySqlObject().ReplaceFolioComment(folioid, comment);			
+		}
+		public portfolio GetFolioComment(int folioid)
+		{
+			portfolio p = new portfolio()
+			{
+				Comment = ComponentFactory.GetMySqlObject().GetFolioComment(folioid)
+			};
+			return p;
+		}
+		public IList<ExpenseDTO> GetExpense(int folioid)
+		{
+			IList <ExpenseDTO> Exp = new List<ExpenseDTO>();
+			ComponentFactory.GetMySqlObject().GetFolioExpense(folioid, Exp);
+			return Exp;
+		}
+		public IList<MonthlyExpenseDTO> GetMonthlyExpenseHistory(int folioid, int pastMonth)
+		{
+			IList<MonthlyExpenseDTO> Exp = new List<MonthlyExpenseDTO>();
+			ComponentFactory.GetMySqlObject().GetMontlyFolioExpenseHistory(folioid, Exp, pastMonth);
+			return Exp;
+		}
+		public IList<ExpenseDTO> GetMonthlyExpense(int folioid,string my)
+		{
+			IList<ExpenseDTO> Exp = new List<ExpenseDTO>();
+			ComponentFactory.GetMySqlObject().GetMontlyFolioExpense(folioid, Exp, my);
+			return Exp;
+		}
+		public IList<ExpType> GetExpenseType()
+		{
+			IList<ExpType> Exp = new List<ExpType>();
+			ComponentFactory.GetMySqlObject().GetExpenseType(Exp);
+			return Exp;
+		}
+		public bool AddExpenseType(ExpType t)
+		{
+			
+			return ComponentFactory.GetMySqlObject().AddExpenseType(t);
+			
+		}
+		public bool AddExpense( ExpenseDTO exp)
+		{
+			
+			return ComponentFactory.GetMySqlObject().AddExpense( exp);
+			
+		}
+
 
 		public IList<portfolio> GetFolio(int portfolioId, List<portfolio> finalFolio)
 		{
@@ -360,7 +396,7 @@ namespace myfinAPI.Business
 			int counter = 0;
 			foreach (EquityTransaction eq in tranDetails)
 			{
-				var indx=finalFolio.FindIndex(x => x.EquityName == eq.equityName);
+				var indx=finalFolio.FindIndex(x => x.eq.equityName == eq.equityName);
 				IEnumerable<EquityTransaction> selectedEqtTran = tranDetails.Where(x=>x.equityName==eq.equityName);
 				double qty = 0, avgprice=0;
 				if (indx < 0)
@@ -400,16 +436,21 @@ namespace myfinAPI.Business
 					if (qty > 0)
 					{
 						finalFolio.Add(new portfolio()
-						{
-							EquityName = eq.equityName,
+						{ 
+							eq=new EquityBase()
+							{
+								equityName = eq.equityName,
+								equityId = eq.equityId,
+								symbol = eq.symbol,
+								livePrice = eq.livePrice,
+								sector = eq.sector,
+								MarketCap =eq.MarketCap,
+								PB=eq.PB
+							},
 							qty = qty,
 							avgprice = avgprice / qty,
-							EquityId = eq.equityId,
-							symobl = eq.symbol,
 							equityType = eq.assetType,
-							livePrice = eq.livePrice,
 							trandate = eq.tranDate,
-							sector = eq.sector,
 							xirr = astreturn*100,
 							dividend = CalculateDividend(eq.equityId, selectedEqtTran.ToList())
 						});
