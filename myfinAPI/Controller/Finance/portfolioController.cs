@@ -21,9 +21,22 @@ namespace myfinAPI.Controller
 		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
 			List<portfolio> PortFolios = new List<portfolio>();			
-			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios).ToArray();
-			return PortFolios.Where(x=>x.qty>0).ToArray();
-			
+			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios);
+			return PortFolios.Where(x=>x.qty>0).ToArray();			
+		}
+		[HttpGet("AssetDistribution/{portfolioId}")]
+		public ActionResult<IEnumerable<portfolio>> AssetDistribution(int portfolioId)
+		{
+			List<portfolio> PortFolios = new List<portfolio>();
+			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios);
+			return PortFolios.Where(x => x.qty > 0).ToArray();
+		}
+		[HttpGet("SectorWiseAssetDistribution/{portfolioId}")]
+		public ActionResult<IEnumerable<SectorAssetDistribution>> SectorWiseAssetDistribution(int portfolioId)
+		{
+			//List<SectorAssetDistribution> PortFolios = new List<SectorAssetDistribution>();
+			return ComponentFactory.GetPortfolioObject().SectorWiseAssetDistribution(portfolioId).ToArray();
+			//return PortFolios.Where(x => x.qty > 0).ToArray();
 		}
 
 		/// <summary>
@@ -150,5 +163,17 @@ namespace myfinAPI.Controller
 		{
 			return ComponentFactory.GetPortfolioObject().GetMonthlyExpenseHistory(folioid, pastMonth).ToArray();
 		}
+
+		[HttpPost("DeleteExpense")]
+		public ActionResult<bool> DeleteExpense(ExpenseDTO expId)
+		{
+			return ComponentFactory.GetPortfolioObject().DeleteExpense(expId.expId);
+		}
+		[HttpGet("GetMonthlyInvestment/{folioid}/{lastmonths}")]
+		public ActionResult<IList<Invstmnt>> GetMonthlyInvestment(int folioid, int lastmonths)
+		{
+			return ComponentFactory.GetPortfolioObject().GetMonthlyInvestment(folioid, lastmonths).ToArray();
+		}
+
 	}
 }

@@ -7,6 +7,7 @@ namespace myfinAPI.Model.DTO
 {
 	public class ExpenseDTO
 	{
+		public int expId { get; set; }
 		public int folioId { get; set; }
 		public DateTime dtOfTran{ get; set; }
 		public double amt { get; set; }
@@ -16,7 +17,7 @@ namespace myfinAPI.Model.DTO
 	}
 	public class ExpType
 	{
-		public int expId { get; set; }
+		public int expTypeId { get; set; }
 		public string expTypeDesc { get; set; }
 	}
 	public class MonthlyExpenseDTO

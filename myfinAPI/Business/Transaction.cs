@@ -30,29 +30,7 @@ namespace myfinAPI.Business
 				//AddHistory(pfTranList, yearlyHistory, AssetType.Shares, Year, result);
 
 				Year--;
-			}
-
-			//foreach(EquityTransaction tran in transactions)
-			//{				
-			//	AssetHistory yearlyInvst = result.FirstOrDefault(x => x.year == tran.tranDate.Year && x.Assettype == tran.assetType);
-			//	if (yearlyInvst == null)
-			//	{
-			//		result.Add(new AssetHistory()
-			//		{
-			//			Assettype = tran.assetType,
-			//			Investment = tran.qty * tran.price,
-			//			year = tran.tranDate.Year
-			//		});
-			//	}
-			//	else if(tran.tranType == "B" )
-			//	{
-			//		yearlyInvst.Investment += tran.qty * tran.price;
-			//	}
-			//	else if (tran.tranType == "S")
-			//	{
-			//		yearlyInvst.Investment -= tran.qty * tran.price;
-			//	}				
-			//}
+			}			  
 			return result;
 		}
 		public IList<AssetHistory> GetMonthlyInvestment()
@@ -85,6 +63,45 @@ namespace myfinAPI.Business
 			return result;
 		}
 
+		public IList<EquityTransaction> GetYearlyInvestment(int folioId, string eqtId)
+		{
+			IList<EquityTransaction> yrEqtInvst = new List<EquityTransaction>();
+			IList<EquityTransaction> yrNewEqtInvst = new List<EquityTransaction>();
+			
+			ComponentFactory.GetMySqlObject().GetYearlyInvstPerEqt(folioId, eqtId, yrEqtInvst);
+
+			for (int year = yrEqtInvst[0].tranDate.Year; year <= DateTime.Now.Year; year++)
+			{
+				IList<EquityTransaction> listofTran = yrEqtInvst.Where(x => x.tranDate.Year == year).ToList();
+				if (listofTran.Count == 0)
+				{
+					yrNewEqtInvst.Add(new EquityTransaction()
+					{
+						tranDate = new DateTime(year, 1, 1),
+						equityId = eqtId,
+					});
+				}
+				else
+				{
+					EquityTransaction yrTran = new EquityTransaction();
+					foreach (EquityTransaction t in listofTran)
+					{
+						if(t.tranType=="B")
+						{
+							yrTran.qty += t.qty;
+							yrTran.tranDate = t.tranDate;
+						}
+						else
+						{
+							yrTran.qty -= t.qty;
+							yrTran.tranDate = t.tranDate;
+						}							
+					};
+					yrNewEqtInvst.Add(yrTran);
+				}
+			}
+			return yrNewEqtInvst;
+		}
 		private void AddHistory(IEnumerable<EquityTransaction> shareTranList,
 			AssetType assetType, int year, IList<AssetHistory> result)
 		{

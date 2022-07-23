@@ -9,6 +9,7 @@ namespace myfinAPI.Model
 	{
 		public int AssetId { get; set; }
 		public int Year{ get; set; }
+		public int Month { get; set; }
 		public double Invested { get; set; }
 		public double CurrentValue { get; set; }
 	}

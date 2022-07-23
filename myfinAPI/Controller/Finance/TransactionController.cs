@@ -42,10 +42,15 @@ namespace myfinAPI.Controller
 				return ComponentFactory.GetTranObject().GetMonthlyInvestment().ToArray();
 			}
 		}
+		[HttpGet("getYrlyEqtInvst/{portfolioId}/{equity}")]
+		public ActionResult<IEnumerable<EquityTransaction>> GetYrlyEqtTransaction(int portfolioId, string equity)
+		{		
+			return ComponentFactory.GetTranObject().GetYearlyInvestment(portfolioId, equity).ToArray();			
+		}
 		[HttpGet("tran/{portfolioId}/{equity}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetTransaction(int portfolioId, string equity)
 		{
-			return ComponentFactory.GetMySqlObject().GetTransaction(portfolioId, equity).ToArray();
+			return ComponentFactory.GetMySqlObject().GetTransaction(portfolioId, equity).ToArray();			
 		}
 		[HttpPost("updatefolio")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)

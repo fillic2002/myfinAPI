@@ -82,7 +82,13 @@ namespace myfinAPI.Business
 		public void GetRental(int month, int year)
 		{
 
-		}		
+		}
+		public IList<PFAccount> GetMonthlyDividend(int folioId, int astType,int year)
+		{
+			IList<PFAccount> pfDetails = new List<PFAccount>();
+			ComponentFactory.GetMySqlObject().GetMonthlyPFContribution(folioId,astType,year, pfDetails);
+			return pfDetails;
+		}
 	}
 
 	 
