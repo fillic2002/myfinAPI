@@ -14,21 +14,20 @@ namespace myfinAPI.Business
 		public IList<AssetHistory> GetYearlyInvestment()
 		{
 			IList<AssetHistory> result = new List<AssetHistory>();
-			IList<EquityTransaction> transactions = ComponentFactory.GetMySqlObject().GetTransaction(0).ToArray();
+			IList<EquityTransaction> transactions = new List<EquityTransaction>();
+			ComponentFactory.GetMySqlObject().GetAllTransaction(0,transactions);
 			int Year = DateTime.Now.Year;
 
 			while (Year > 2015)
 			{
 				AssetHistory yearlyHistory = new AssetHistory();
-				var shareTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetType == (int)AssetType.Shares);
+				var shareTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetTypeId == AssetType.Shares);
 				AddHistory(shareTranList, AssetType.Shares, Year, result);
-				var debtTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetType == (int)AssetType.Debt_MF);
+				var debtTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetTypeId == AssetType.Debt_MF);
 				AddHistory(debtTranList, AssetType.Debt_MF, Year, result);
-				var eqtyTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetType == (int)AssetType.Equity_MF);
+				var eqtyTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetTypeId == AssetType.Equity_MF);
 				AddHistory(eqtyTranList, AssetType.Equity_MF, Year, result);
-				//var pfTranList = transactions.Where(x => x.tranDate.Year == Year && x.assetType == (int)AssetType.PF);
-				//AddHistory(pfTranList, yearlyHistory, AssetType.Shares, Year, result);
-
+			
 				Year--;
 			}			  
 			return result;
@@ -36,16 +35,18 @@ namespace myfinAPI.Business
 		public IList<AssetHistory> GetMonthlyInvestment()
 		{
 			IList<AssetHistory> result = new List<AssetHistory>();
-			var transactions = ComponentFactory.GetMySqlObject().GetTransaction(0).ToArray();
+			IList<EquityTransaction> transactions = new List<EquityTransaction>();
+			ComponentFactory.GetMySqlObject().GetAllTransaction(0, transactions);
+
 			foreach (EquityTransaction tran in transactions)
 			{
 				AssetHistory monthlyInvestment = result.FirstOrDefault(x => x.year == tran.tranDate.Year && x.month == tran.tranDate.Month
-				&& x.Assettype == tran.assetType);
+				&& x.Assettype == tran.assetTypeId);
 				if (monthlyInvestment == null)
 				{
 					result.Add(new AssetHistory()
 					{
-						Assettype = tran.assetType,
+						Assettype = tran.assetTypeId,
 						Investment = tran.qty * tran.price,
 						year = tran.tranDate.Year,
 						month = tran.tranDate.Month
@@ -106,7 +107,7 @@ namespace myfinAPI.Business
 			AssetType assetType, int year, IList<AssetHistory> result)
 		{
 			AssetHistory yearlyHistory = new AssetHistory();
-			yearlyHistory.Assettype = (int)assetType;
+			yearlyHistory.Assettype = assetType;
 			yearlyHistory.year = year;
 			foreach (EquityTransaction t in shareTranList)
 			{
@@ -150,5 +151,28 @@ namespace myfinAPI.Business
 			return ComponentFactory.GetMySqlObject().PostEquityTransaction(tran);
 		}
 
+		public IList<EquityTransaction> GetTransaction(int folioId, string EqtId)
+		{
+			IList <EquityTransaction> tranDetails = new List<EquityTransaction>();
+			ComponentFactory.GetMySqlObject().GetTransaction(folioId, EqtId, tranDetails);
+			return tranDetails;
+		}
+
+		public void GetAllTransaction(int folioId, IList<EquityTransaction> tranDetails)
+		{	
+			ComponentFactory.GetMySqlObject().GetAllTransaction(folioId, tranDetails);
+		}
+
+		public void GetBondTransaction(int folioId, IList<EquityTransaction> t)
+		{		 
+			ComponentFactory.GetMySqlObject().GetBondTransaction(folioId, t);			
+		}
+		public bool AddBondDetails(Bond bondDetails)
+		{
+			return ComponentFactory.GetAdminObj().AddBondDetails(bondDetails);
+		}
+
+
 	}
 }
+

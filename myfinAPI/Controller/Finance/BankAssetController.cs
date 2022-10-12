@@ -26,10 +26,10 @@ namespace myfinAPI.Controller
 			}
 			return obj;
 		}
-		[HttpGet("GetDetailedAmt")]
+		[HttpGet("GetBankAcDetails")]
 		public ActionResult<IEnumerable<BankDetail>> GetBankAssetDetail()
 		{
-			return ComponentFactory.GetMySqlObject().GetBankAssetDetail().ToArray();
+			return ComponentFactory.GetBankObject().GetAcctDetails().ToArray();
 		}
 		[HttpPost("SaveAcctStatus")]
 		public ActionResult<bool> PostBankTransaction(BankDetail transactionDetail)

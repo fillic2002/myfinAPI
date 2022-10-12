@@ -6,6 +6,7 @@ using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
 using static myfinAPI.Business.Xirr;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Business
 {
@@ -67,8 +68,7 @@ namespace myfinAPI.Business
 		{
 			IList<DashboardDetail> dashBoard = new List<DashboardDetail>();
 			IList<EquityTransaction> tranList = new List<EquityTransaction>();
-			IList<AssetHistory> assetReturn = new List<AssetHistory>();
-			//IList<CashItem> tranDetails = new List<CashItem>();
+			IList<AssetHistory> assetReturn = new List<AssetHistory>();			
 
 			ComponentFactory.GetMySqlObject().getTransactionDetails(0, tranList);
 
@@ -105,7 +105,7 @@ namespace myfinAPI.Business
 			{
 				double xirrReturn = 0;
 
-				if (asset.Id ==  1|| asset.Id == 2 || asset.Id == 5)
+				if (asset.Id ==  AssetType.Shares|| asset.Id == AssetType.Equity_MF || asset.Id == AssetType.Debt_MF)
 				{
 					CreateCashItemList(tranList, asset.Id);
 					//AddDividend(asset.Id, );
@@ -120,10 +120,10 @@ namespace myfinAPI.Business
 			}
 			return dashBoard;
 		}
-		private void CreateCashItemList(IList<EquityTransaction> eqtTranDetails,int astType)
+		private void CreateCashItemList(IList<EquityTransaction> eqtTranDetails,AssetType astType)
 		{
 			tranDetails = new List<CashItem>();
-			foreach (EquityTransaction eqtT in eqtTranDetails.Where(x=>x.assetType==astType))
+			foreach (EquityTransaction eqtT in eqtTranDetails.Where(x=>x.assetTypeId==astType))
 			{
 				tranDetails.Add(new CashItem()
 				{

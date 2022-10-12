@@ -11,12 +11,26 @@ namespace myfinAPI.Factory
 	{
 		private static mysqlContext _mysqlComponent;
 		private static WebScrapper _webScraperComponent;
-		private static Portfolio _portfolioComponent;
+		private static PortfoliMgmt _portfolioComponent;
 		private static Dashboard _dashboard;
 		private static Banking _bankAc;
 		private static Transaction _transaction;
+		private static AssetSnapshot _snapshot;
 		private static Xirr _xirr;
+		private static Admin _admin;
 
+		public static Admin GetAdminObj()
+		{
+			if (_admin == null)
+				_admin = new Admin();
+			return _admin;
+		}
+		public static AssetSnapshot GetSnapshotObj()
+		{
+			if (_snapshot == null)
+				_snapshot = new AssetSnapshot();
+			return _snapshot;
+		}
 		public static Xirr GetXirrObject()
 		{
 			if (_xirr == null)
@@ -54,10 +68,10 @@ namespace myfinAPI.Factory
 				_webScraperComponent = new WebScrapper();
 			return _webScraperComponent;
 		}
-		public static Portfolio GetPortfolioObject()
+		public static PortfoliMgmt GetPortfolioObject()
 		{
 			if (_portfolioComponent == null)
-				_portfolioComponent = new Portfolio();
+				_portfolioComponent = new PortfoliMgmt();
 			return _portfolioComponent;
 		}
 

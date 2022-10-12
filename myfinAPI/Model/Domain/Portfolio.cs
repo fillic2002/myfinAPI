@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Model
 {
@@ -10,16 +11,12 @@ namespace myfinAPI.Model
 		public EquityBase eq { get; set; }
 		public int trasactionId { get; set; }
 		public double avgprice { get; set; }
-		public double qty { get; set; }
-		//public double livePrice { get; set; }
-		//public string EquityId {get; set;}
-		//public string EquityName { get; set; }
-		//public string symobl { get; set; }
-		public int equityType { get; set; }
+		public double qty { get; set; }	
+		public AssetType equityType { get; set; }
 		public double dividend{ get; set; }
-		public DateTime trandate { get; set; }
-		//public string sector { get; set; }
+		public DateTime trandate { get; set; }	
 		public double xirr { get; set; }
+		public double DivReturnXirr { get; set; }
 
 	}
 	public class Ibasefolio

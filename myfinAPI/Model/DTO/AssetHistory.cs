@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Model
 {
@@ -14,7 +15,7 @@ namespace myfinAPI.Model
 		public int month { get; set; }
 		public int year { get; set; }
 		public int qty { get; set; }
-		public int Assettype { get; set; }
+		public AssetType Assettype { get; set; }
 
 	}
 }

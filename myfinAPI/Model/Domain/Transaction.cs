@@ -13,7 +13,8 @@ namespace myfinAPI.Model
 		public double price { get; set; }
 		public int portfolioId { get; set; }
 		public string tranType { get; set; }
-		public int assetType { get; set; }
+		public AssetType assetTypeId { get; set; }
+		public double ownership { get; set; }
 		
 	}
 }

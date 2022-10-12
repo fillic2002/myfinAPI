@@ -74,10 +74,10 @@ namespace myfinAPI.Business
 			
 			  ComponentFactory.GetMySqlObject().GetSalaryAndRental(pastmonths, cashFlow);			
 		}
-		public void GetDividend(int pastmonths, IList<CashFlow> div)
+		public void GetDividend(int pastmonths, IList<CashFlow> cashFlow)
 		{
-			 
-			  ComponentFactory.GetMySqlObject().GetNetDividend(pastmonths,  div);
+			IList<dividend> div = new List<dividend>();
+			ComponentFactory.GetMySqlObject().GetNetDividend(cashFlow, div);
 		}
 		public void GetRental(int month, int year)
 		{
@@ -89,6 +89,14 @@ namespace myfinAPI.Business
 			ComponentFactory.GetMySqlObject().GetMonthlyPFContribution(folioId,astType,year, pfDetails);
 			return pfDetails;
 		}
+
+		public IList<BankDetail> GetAcctDetails()
+		{
+			IList<BankDetail> banAcdetails = new List<BankDetail>();
+			ComponentFactory.GetMySqlObject().GetBankAssetDetail(banAcdetails);
+			return banAcdetails.Where(x => x.isActive ==true).ToList();
+		}
+		
 	}
 
 	 

@@ -7,9 +7,9 @@ namespace myfinAPI.Model.Domain
 {
 	public class dividend
 	{
-		public DateTime dt { get; set; }
-		public string companyid { get; set; }
-		public double value { get; set; }
-		
+		public DateTime dt { get; set; }		
+		public double divValue { get; set; }
+
+		public EquityBase eqt{get;set;}
 	}
 }

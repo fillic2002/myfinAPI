@@ -14,6 +14,7 @@ namespace myfinAPI.Model
 		public string acctName { get; set; }
 		public string acctType { get; set; }
 		public int userid { get; set; }
+		public bool isActive { get; set; }
 	}
 
 	public class TotalBankAsset

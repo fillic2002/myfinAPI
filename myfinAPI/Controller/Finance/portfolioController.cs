@@ -8,6 +8,7 @@ using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
+using static myfinAPI.Model.AssetClass;
 using ExpType = myfinAPI.Model.DTO.ExpType;
 
 namespace myfinAPI.Controller
@@ -21,14 +22,14 @@ namespace myfinAPI.Controller
 		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
 		{
 			List<portfolio> PortFolios = new List<portfolio>();			
-			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios);
+			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios,DateTime.UtcNow.Year);
 			return PortFolios.Where(x=>x.qty>0).ToArray();			
 		}
 		[HttpGet("AssetDistribution/{portfolioId}")]
 		public ActionResult<IEnumerable<portfolio>> AssetDistribution(int portfolioId)
 		{
 			List<portfolio> PortFolios = new List<portfolio>();
-			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios);
+			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios,DateTime.UtcNow.Year);
 			return PortFolios.Where(x => x.qty > 0).ToArray();
 		}
 		[HttpGet("SectorWiseAssetDistribution/{portfolioId}")]
@@ -50,13 +51,13 @@ namespace myfinAPI.Controller
 		public double CalculateDividend(string companyId, IList<EquityTransaction> t)
 		{
 			IList<dividend> divDetails = new List<dividend>();
-			ComponentFactory.GetMySqlObject().GetDividend(companyId, divDetails);
+			ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId, divDetails);
 			
 			double dividend = 0;
 			foreach (dividend div in divDetails)
 			{
 				double q = 0;
-				foreach (EquityTransaction tran in t.Where(x=>x.equityId==div.companyid && x.tranDate<div.dt))
+				foreach (EquityTransaction tran in t.Where(x=>x.equityId==div.eqt.equityId && x.tranDate<div.dt))
 				{					
 						if (tran.tranType == "B")
 							q += tran.qty;
@@ -66,7 +67,7 @@ namespace myfinAPI.Controller
 
 				if (q > 0)
 				{					 
-					dividend += q * div.value;
+					dividend += q * div.divValue;
 					//if(p.folioId==2)
 					//	Console.WriteLine("EQUITY:"+div.companyid +" Dividend:"+ equities[div.companyid]);
 				}
@@ -114,12 +115,24 @@ namespace myfinAPI.Controller
 		[HttpGet("getAssetsReturn/{portfolioId}/{assetId}")]
 		public ActionResult<IEnumerable<AssetReturn>> GetAssetReturn(int portfolioId, int assetId)
 		{
-			return ComponentFactory.GetPortfolioObject().GetAssetReturn(portfolioId, assetId).ToArray();
+			return ComponentFactory.GetPortfolioObject().GetAssetReturn(portfolioId, (AssetType)assetId).ToArray();
+		}
+		[HttpGet("getNetAssetsReturn/{portfolioId}/{assetId}")]
+		public ActionResult<double> GetNetAssetReturn(int portfolioId, int assetId)
+		{
+			if((AssetType)assetId == AssetType.Bonds)
+			{
+				return ComponentFactory.GetPortfolioObject().GetnetXirrReturnBonds(portfolioId, (AssetType)assetId);
+			}
+			else
+			{
+				return ComponentFactory.GetPortfolioObject().GetnetXirrReturn(portfolioId, (AssetType)assetId);
+			}			
 		}
 		[HttpGet("getAssetsReturn/{assetId}")]
 		public ActionResult<IEnumerable<AssetReturn>> GetAssetReturn(int assetId)
 		{
-			return ComponentFactory.GetPortfolioObject().GetAssetReturn(assetId).ToArray();
+			return ComponentFactory.GetPortfolioObject().GetYearWiseAssetReturn((AssetType)assetId).ToArray();
 		}
 		[HttpPost("AddComment")]
 		public ActionResult<bool> ReplaceComment(portfolio p)

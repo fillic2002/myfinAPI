@@ -16,6 +16,7 @@ namespace myfinAPI.Model
             Bank = 6,
             Plot = 7,
             Flat = 8,
+            Bonds =9,
             Gold = 12
         }
     }

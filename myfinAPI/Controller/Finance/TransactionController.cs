@@ -8,6 +8,7 @@ using myfinAPI.Data;
 using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.DTO;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Controller
 {
@@ -18,7 +19,9 @@ namespace myfinAPI.Controller
 		[HttpGet("getfolio/{portfolioId}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
 		{
-			return ComponentFactory.GetMySqlObject().GetTransaction(portfolioId).ToArray();
+			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
+			 ComponentFactory.GetTranObject().GetAllTransaction(portfolioId, transactionList);
+			return transactionList.ToArray();
 		}
 		[HttpGet("tran/details")]
 		public void GetTransaction()
@@ -50,19 +53,19 @@ namespace myfinAPI.Controller
 		[HttpGet("tran/{portfolioId}/{equity}")]
 		public ActionResult<IEnumerable<EquityTransaction>> GetTransaction(int portfolioId, string equity)
 		{
-			return ComponentFactory.GetMySqlObject().GetTransaction(portfolioId, equity).ToArray();			
+			return ComponentFactory.GetTranObject().GetTransaction(portfolioId, equity).ToArray();
 		}
-		[HttpPost("updatefolio")]
+		[HttpPost("postTransaction")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{
-			if (tran.assetType == 1 || tran.assetType==2 ||  tran.assetType == 5)
+			if (tran.assetTypeId == AssetType.Shares || tran.assetTypeId==AssetType.Equity_MF ||  tran.assetTypeId == AssetType.Debt_MF)
 			{
 				return ComponentFactory.GetTranObject().AddEqtyTransaction(tran);
 					 
 			}
-			else if (tran.assetType == 12 || tran.assetType == 7 || tran.assetType == 8)
+			else if (tran.assetTypeId == AssetType.Gold || tran.assetTypeId == AssetType.Plot || tran.assetTypeId == AssetType.Flat)
 			{
-				return ComponentFactory.GetMySqlObject().postGoldTransaction(tran);
+				return ComponentFactory.GetMySqlObject().postPropertyTransaction(tran);
 			}
 			return false;
 		}
@@ -81,6 +84,13 @@ namespace myfinAPI.Controller
 			return ComponentFactory.GetMySqlObject().RemoveTransaction(tran);
 		}
 
+		[HttpPost("GetBonds/{folioId}")]
+		public ActionResult<IEnumerable<EquityTransaction>> GetBondTransactionDetails(int folioId)
+		{
+			IList<EquityTransaction> tran = new List<EquityTransaction>();
+			ComponentFactory.GetTranObject().GetBondTransaction(folioId, tran);
+			return tran.ToArray();
+		}
 	}
 }
 
