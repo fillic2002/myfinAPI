@@ -7,6 +7,7 @@ using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Business
 {
@@ -17,7 +18,7 @@ namespace myfinAPI.Business
 			return ComponentFactory.GetMySqlObject().GetBankActType().ToArray();
 			
 		}
-		public IEnumerable<PFAccount> GetPFYearWiseDetails(int folioid,int type)
+		public IEnumerable<PFAccount> GetPFYearWiseDetails(int folioid,AssetType type)
 		{
 			List<PFAccount> pfDetails = new List<PFAccount>();
 			ComponentFactory.GetMySqlObject().GetPFYearlyDetails(pfDetails, folioid, type);
@@ -33,7 +34,8 @@ namespace myfinAPI.Business
 						InvestmentEmplr = 0, 
 						Pension = 0,
 						Year=year,
-						TypeOfTransaction =  detail[0].TypeOfTransaction=="int"?"deposit":"int"
+						TypeOfTransaction =  detail[0].TypeOfTransaction==TranType.Intrest?TranType.Deposit:TranType.Intrest,
+						DateOfTransaction =detail[0].DateOfTransaction
 					});
 				}else if(detail.Count==0)
 				{
@@ -44,7 +46,8 @@ namespace myfinAPI.Business
 						InvestmentEmplr = 0,
 						Pension = 0,
 						Year = year,
-						TypeOfTransaction = "deposit" 
+						TypeOfTransaction = TranType.Deposit,
+						
 					});
 					pfDetails.Add(new PFAccount()
 					{
@@ -53,22 +56,17 @@ namespace myfinAPI.Business
 						InvestmentEmplr = 0,
 						Pension = 0,
 						Year = year,
-						TypeOfTransaction = "int"
+						TypeOfTransaction = TranType.Intrest,
+						 
 					});
 				}
 
 				year++;
 			}
-			//double PreviousBalance = 0;
-			//foreach(PFAccount act in pfDetails)
-			//{
-			//	act.Balance = PreviousBalance + act.InvestmentEmp + act.InvestmentEmplr + act.Pension;
-			//	PreviousBalance = act.Balance;
-			//}
+			
 			pfDetails.Sort();			 
 			return pfDetails;
 		}
-
 		public void GetSalaryAndRental(int pastmonths, IList<CashFlow> cashFlow)
 		{
 			
@@ -89,12 +87,30 @@ namespace myfinAPI.Business
 			ComponentFactory.GetMySqlObject().GetMonthlyPFContribution(folioId,astType,year, pfDetails);
 			return pfDetails;
 		}
-
 		public IList<BankDetail> GetAcctDetails()
 		{
 			IList<BankDetail> banAcdetails = new List<BankDetail>();
 			ComponentFactory.GetMySqlObject().GetBankAssetDetail(banAcdetails);
 			return banAcdetails.Where(x => x.isActive ==true).ToList();
+		}
+	
+		public void GetYearlyPFTransaction(int folioId, AssetType type, IList<EquityTransaction> tran)
+		{
+			List<PFAccount> pfDetails = new List<PFAccount>();
+			ComponentFactory.GetMySqlObject().GetPFYearlyDetails(pfDetails, folioId, type);
+			foreach (PFAccount pf in pfDetails)
+			{
+				EquityTransaction ast = new EquityTransaction()
+				{
+					tranDate = pf.DateOfTransaction,
+					tranType = pf.TypeOfTransaction,
+					qty=1, 
+					price= pf.InvestmentEmp+pf.InvestmentEmplr+pf.Pension,
+					equity = new EquityBase() { assetType = type},
+
+				};
+				tran.Add(ast);
+			}			
 		}
 		
 	}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Model
 {
@@ -12,7 +13,7 @@ namespace myfinAPI.Model
 		public int Year { get; set; }
 		public int Month { get; set; }
 		public double Balance { get; set; }
-		public string TypeOfTransaction { get; set; }
+		public TranType TypeOfTransaction { get; set; }
 		public double InvestmentEmp { get; set; }
 		public double InvestmentEmplr { get; set; }
 		public double Pension { get; set; }

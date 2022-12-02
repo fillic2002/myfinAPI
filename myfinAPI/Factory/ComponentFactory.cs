@@ -18,7 +18,27 @@ namespace myfinAPI.Factory
 		private static AssetSnapshot _snapshot;
 		private static Xirr _xirr;
 		private static Admin _admin;
-
+		private static BondsContext _bondObj;
+		private static BondsHelper _bondhelper;
+		private static Equity _eqtyHelper;
+		public static Equity GetEquityHelperObj()
+		{
+			if (_eqtyHelper == null)
+				_eqtyHelper = new Equity();
+			return _eqtyHelper;
+		}
+		public static BondsHelper GetBondhelperObj()
+		{
+			if (_bondhelper == null)
+				_bondhelper = new BondsHelper();
+			return _bondhelper;
+		}
+		public static BondsContext GetBondDataObj()
+		{
+			if (_bondObj == null)
+				_bondObj = new BondsContext();
+			return _bondObj;
+		}
 		public static Admin GetAdminObj()
 		{
 			if (_admin == null)

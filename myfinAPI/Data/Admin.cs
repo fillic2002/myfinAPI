@@ -24,8 +24,9 @@ namespace myfinAPI.Data
 				{
 					MySqlCommand command = null;
 					string dt = bondDetails.dateOfMaturity.ToString("yyyy-MM-dd");
-					command = new MySqlCommand(@"INSERT INTO myfin.bonddetails(BondId,CouponRate,DOM,YTM,minInvst) 
-				Values('" +bondDetails.BondId + "'," + bondDetails.couponRate + ",'" + dt+ "'," + bondDetails.YTM + "," + bondDetails.minInvst+ "); ", _conn);
+					command = new MySqlCommand(@"INSERT INTO myfin.bonddetails(Bondid,BondName,CouponRate,DOM,facevalue,minInvst,symbols) 
+				Values( '"+ bondDetails.BondId+"','" +bondDetails.BondName + "'," + bondDetails.couponRate + ",'" + dt+ "'," + bondDetails.faceValue + 
+						"," + bondDetails.minInvst+",'"+bondDetails.symbol +"'); ", _conn);
 					int count = command.ExecuteNonQuery();
 					if (count > 0)
 						return true;

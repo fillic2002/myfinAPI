@@ -50,12 +50,5 @@ namespace myfinAPI.Controller
 			 
 		}
 
-		[HttpPost("AddBond")]
-		public bool AddBondDetails(Bond bondDetail)
-		{
-			return ComponentFactory.GetTranObject().AddBondDetails(bondDetail);
-		}
-	 
-
 	}
 }

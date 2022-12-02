@@ -8,7 +8,7 @@ namespace myfinAPI.Model
 {
 	public class portfolio : Ibasefolio
 	{
-		public EquityBase eq { get; set; }
+		public EquityBase eq { get; set; }		
 		public int trasactionId { get; set; }
 		public double avgprice { get; set; }
 		public double qty { get; set; }	

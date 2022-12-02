@@ -19,5 +19,17 @@ namespace myfinAPI.Model
             Bonds =9,
             Gold = 12
         }
+        public enum TranType
+        {
+            Buy= 1,
+            Sell= 2,
+            Deposit =3,
+            Salary =4,
+            Bonus=5,
+            Intrest =6,
+            Carry=7,
+            Adjustment=8
+        }
     }
+    
 }

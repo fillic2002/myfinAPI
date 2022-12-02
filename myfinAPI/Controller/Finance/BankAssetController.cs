@@ -8,6 +8,7 @@ using myfinAPI.Data;
 using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Controller
 {
@@ -39,7 +40,7 @@ namespace myfinAPI.Controller
 		[HttpGet("GetPfYearlyDetails/{folioid}/{typeofAct}")]
 		public ActionResult<IEnumerable<PFAccount>> GetPFAcTransaction(int folioid,int typeofAct)
 		{
-			return ComponentFactory.GetBankObject().GetPFYearWiseDetails(folioid, typeofAct).ToArray();
+			return ComponentFactory.GetBankObject().GetPFYearWiseDetails(folioid, Enum.Parse<AssetType>(typeofAct.ToString())).ToArray();
 		}
 		[HttpGet("GetMonthlyPFDetails/{folioid}/{typeofAct}/{year}")]
 		public ActionResult<IEnumerable<PFAccount>> GetMonthlyDividend(int folioid, int typeofAct, int Year)

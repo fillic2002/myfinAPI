@@ -57,9 +57,9 @@ namespace myfinAPI.Controller
 			foreach (dividend div in divDetails)
 			{
 				double q = 0;
-				foreach (EquityTransaction tran in t.Where(x=>x.equityId==div.eqt.equityId && x.tranDate<div.dt))
+				foreach (EquityTransaction tran in t.Where(x=>x.equity.assetId==div.eqt.assetId && x.tranDate<div.dt))
 				{					
-						if (tran.tranType == "B")
+						if (tran.tranType == TranType.Buy)
 							q += tran.qty;
 						else
 							q -= tran.qty;					

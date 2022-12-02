@@ -27,7 +27,7 @@ namespace myfinAPI.Data
 			if (folio.eq.symbol == null)
 				return 0;
 			EquityBase _eq = new EquityBase();
-			_eq=ComponentFactory.GetMySqlObject().GetLivePrice(folio.eq.equityId);
+			_eq=ComponentFactory.GetMySqlObject().GetLivePrice(folio.eq.assetId);
 			try
 			{
 

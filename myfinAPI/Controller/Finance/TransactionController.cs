@@ -20,7 +20,7 @@ namespace myfinAPI.Controller
 		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
 		{
 			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
-			 ComponentFactory.GetTranObject().GetAllTransaction(portfolioId, transactionList);
+			 ComponentFactory.GetEquityHelperObj().GetAllTransaction(portfolioId, transactionList);
 			return transactionList.ToArray();
 		}
 		[HttpGet("tran/details")]
@@ -38,11 +38,11 @@ namespace myfinAPI.Controller
 		{
 			if (flag == "Yearly")
 			{
-				return ComponentFactory.GetTranObject().GetYearlyInvestment().ToArray();
+				return ComponentFactory.GetTranObject().GetYearlyInvestment(0).ToArray();
 			}
 			else
 			{
-				return ComponentFactory.GetTranObject().GetMonthlyInvestment().ToArray();
+				return ComponentFactory.GetTranObject().GetMonthlyInvestment(0).ToArray();
 			}
 		}
 		[HttpGet("getYrlyEqtInvst/{portfolioId}/{equity}")]
@@ -58,26 +58,26 @@ namespace myfinAPI.Controller
 		[HttpPost("postTransaction")]
 		public ActionResult<bool> PostPortfolio(EquityTransaction tran)
 		{
-			if (tran.assetTypeId == AssetType.Shares || tran.assetTypeId==AssetType.Equity_MF ||  tran.assetTypeId == AssetType.Debt_MF)
+			if (tran.equity.assetType== AssetType.Shares || tran.equity.assetType == AssetType.Equity_MF || tran.equity.assetType == AssetType.Debt_MF)
 			{
-				return ComponentFactory.GetTranObject().AddEqtyTransaction(tran);
+				return ComponentFactory.GetEquityHelperObj().AddEqtyTransaction(tran);
 					 
 			}
-			else if (tran.assetTypeId == AssetType.Gold || tran.assetTypeId == AssetType.Plot || tran.assetTypeId == AssetType.Flat)
+			else if (tran.equity.assetType == AssetType.Gold || tran.equity.assetType == AssetType.Plot || tran.equity.assetType == AssetType.Flat)
 			{
 				return ComponentFactory.GetMySqlObject().postPropertyTransaction(tran);
+			}else if(tran.equity.assetType == AssetType.Bonds)
+			{				
+				return ComponentFactory.GetBondhelperObj().AddBondTransaction(tran);
 			}
 			return false;
 		}
 
 		[HttpPost("AddBankTransaction")]
 		public ActionResult<bool> PostBankTransaction(BankTransaction tran)
-		{
-			  
-			return ComponentFactory.GetTranObject().AddPFTransaction(tran);
-			  
+		{			  
+			return ComponentFactory.GetTranObject().AddPFTransaction(tran);			  
 		}
-
 		[HttpPost("deletetransction")]
 		public ActionResult<bool> PostTransaction(EquityTransaction tran)
 		{
@@ -88,7 +88,7 @@ namespace myfinAPI.Controller
 		public ActionResult<IEnumerable<EquityTransaction>> GetBondTransactionDetails(int folioId)
 		{
 			IList<EquityTransaction> tran = new List<EquityTransaction>();
-			ComponentFactory.GetTranObject().GetBondTransaction(folioId, tran);
+			ComponentFactory.GetBondhelperObj().GetBondTransaction(folioId, tran);
 			return tran.ToArray();
 		}
 	}

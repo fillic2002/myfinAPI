@@ -12,5 +12,7 @@ namespace myfinAPI.Model
 		public int Month { get; set; }
 		public double Invested { get; set; }
 		public double CurrentValue { get; set; }
+		public double currentYearProfit { get; set; }
+
 	}
 }

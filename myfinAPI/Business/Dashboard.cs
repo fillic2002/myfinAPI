@@ -21,7 +21,7 @@ namespace myfinAPI.Business
 		public IList<AssetHistory> GetAllAssetHistory(int userid)
 		{
 			IList<AssetHistory> astHistory = new List<AssetHistory>();
-			astHistory=ComponentFactory.GetMySqlObject().GetAssetSnapshot();
+			astHistory=ComponentFactory.GetSnapshotObj().GetAssetSnapshot();
 			 
 			return astHistory.Where(x=>x.year>=2015).ToArray();
 			 
@@ -34,35 +34,36 @@ namespace myfinAPI.Business
 
 			ComponentFactory.GetMySqlObject().getTransactionDetails(0, tranList);
 
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(1, assetReturn, month,year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(2, assetReturn, month, year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(3, assetReturn, month, year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(4, assetReturn, month, year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(5, assetReturn, month, year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(1, assetReturn, month,year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(2, assetReturn, month, year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(3, assetReturn, month, year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(4, assetReturn, month, year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(5, assetReturn, month, year);
+			
 			foreach (AssetHistory asset in assetReturn)
 			{
-				if (asset.year == year && asset.month == month)
+			if (asset.year == year && asset.month == month)
+			{
+				var AstName = (AssetClass.AssetType)Enum.Parse(typeof(AssetClass.AssetType), asset.Assettype.ToString());
+				var AstExist = dashBoard.FirstOrDefault(x => x.AssetName == AstName.ToString());
+				if (AstExist != null)
 				{
-					var AstName = (AssetClass.AssetType)Enum.Parse(typeof(AssetClass.AssetType), asset.Assettype.ToString());
-					var AstExist = dashBoard.FirstOrDefault(x => x.AssetName == AstName.ToString());
-					if (AstExist != null)
+					AstExist.Invested += asset.Investment;
+					AstExist.CurrentValue += asset.AssetValue;
+				}
+				else
+				{
+					dashBoard.Add(new DashboardDetail()
 					{
-						AstExist.Invested += asset.Investment;
-						AstExist.CurrentValue += asset.AssetValue;
-					}
-					else
-					{
-						dashBoard.Add(new DashboardDetail()
-						{
-							Id = asset.Assettype,
-							AssetName = AstName.ToString(),
-							Invested = asset.Investment,
-							CurrentValue = asset.AssetValue
-						});
-					}
+						Id = asset.Assettype,
+						AssetName = AstName.ToString(),
+						Invested = asset.Investment,
+						CurrentValue = asset.AssetValue
+					});
 				}
 			}
-			return dashBoard;
+		}
+		return dashBoard;
 		}
 		public IList<DashboardDetail> GetAssetSnapshot()
 		{
@@ -72,11 +73,11 @@ namespace myfinAPI.Business
 
 			ComponentFactory.GetMySqlObject().getTransactionDetails(0, tranList);
 
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(1, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(2, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(3, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(4, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
-			ComponentFactory.GetMySqlObject().GetCurrentMonthSnapShot(5, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(1, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(2, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(3, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(4, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
+			ComponentFactory.GetSnapshotObj().GetMonthSnapShot(5, assetReturn, DateTime.Today.Month, DateTime.Today.Year);
 
 			foreach (AssetHistory asset in assetReturn)
 			{
@@ -123,11 +124,11 @@ namespace myfinAPI.Business
 		private void CreateCashItemList(IList<EquityTransaction> eqtTranDetails,AssetType astType)
 		{
 			tranDetails = new List<CashItem>();
-			foreach (EquityTransaction eqtT in eqtTranDetails.Where(x=>x.assetTypeId==astType))
+			foreach (EquityTransaction eqtT in eqtTranDetails.Where(x=>x.equity.assetType==astType))
 			{
 				tranDetails.Add(new CashItem()
 				{
-					Amount =Math.Round(eqtT.price * eqtT.qty*(eqtT.tranType=="B"?-1:1)),
+					Amount =Math.Round(eqtT.price * eqtT.qty*(eqtT.tranType==TranType.Buy?-1:1)),
 					Date= new DateTime(eqtT.tranDate.Year, eqtT.tranDate.Month, eqtT.tranDate.Day)  
 				}) ;				
 			}

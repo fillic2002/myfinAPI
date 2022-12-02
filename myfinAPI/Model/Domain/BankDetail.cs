@@ -18,11 +18,9 @@ namespace myfinAPI.Model
 	}
 
 	public class TotalBankAsset
-	{
-		 
+	{ 
 		public double totalAmt { get; set; }
-		public string actType { get; set; }
-		 
+		public string actType { get; set; }	 
 		 
 	}
 }
