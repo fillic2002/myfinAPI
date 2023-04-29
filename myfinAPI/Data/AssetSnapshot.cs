@@ -69,7 +69,7 @@ namespace myfinAPI.Data
 				if (portfolioId > 0)
 				{
 					command = new MySqlCommand(@"SELECT * FROM myfin.assetsnapshot 
-							where portfolioid=" + portfolioId + " AND and assettype=" + (int)assetType + " " +
+							where portfolioid=" + portfolioId + " AND assettype=" + (int)assetType + " " +
 								"and (month=" + month + " AND year=" + year + " )" +
 								"order by year asc, month asc;", _conn);
 				}
@@ -148,7 +148,7 @@ namespace myfinAPI.Data
 				//return snapshots;
 			}
 		}
-		public void GetMonthlyAssetSnapshot(int folioId, int astType, IList<AssetHistory> snapshots)
+		public void GetMonthlyAssetSnapshot(int folioId, AssetType astType, IList<AssetHistory> snapshots)
 		{
 			//IList<AssetHistory> snapshots = new List<AssetHistory>();
 			using (MySqlConnection _conn = new MySqlConnection(_connString))
@@ -156,7 +156,7 @@ namespace myfinAPI.Data
 				_conn.Open();
 				MySqlCommand command = null;
 				command = new MySqlCommand(@"SELECT month,year, sum(assetvalue)as assetvalue,sum(dividend)as dividend ,sum(invstmt) as invstmt, assettype FROM myfin.assetsnapshot 
-					where assettype=" + astType + "" +
+					where assettype=" + (int)astType + "" +
 					" group by month,year,assettype order by year desc, month desc;", _conn);
 
 				using var reader = command.ExecuteReader();
@@ -261,7 +261,7 @@ namespace myfinAPI.Data
 				return assetReturn;
 			}
 		}
-		public IList<AssetHistory> GetYearlySnapshot(AssetType assetId)
+		public IList<AssetHistory> GetYearlySnapShot(AssetType assetId)
 		{
 			IList<AssetHistory> assetReturn = new List<AssetHistory>();
 			using (MySqlConnection _conn = new MySqlConnection(_connString))
@@ -288,10 +288,11 @@ namespace myfinAPI.Data
 						assetReturn.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							//Dividend = Convert.ToDouble(reader["dividend"]),
+							Dividend = Convert.ToDouble(reader["dividend"]),
 							Investment = Convert.ToDouble(reader["invstmt"]),
 							AssetValue = Convert.ToDouble(reader["assetvalue"]),
-							year = Convert.ToInt32(reader["year"])
+							year = Convert.ToInt32(reader["year"]),
+							Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"]))
 
 						});
 					}
@@ -335,5 +336,7 @@ namespace myfinAPI.Data
 				return snapshots;
 			}
 		}
+
+
 	}
 }

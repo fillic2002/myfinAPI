@@ -75,7 +75,7 @@ namespace myfinAPI.Business
 		public void GetDividend(int pastmonths, IList<CashFlow> cashFlow)
 		{
 			IList<dividend> div = new List<dividend>();
-			ComponentFactory.GetMySqlObject().GetNetDividend(cashFlow, div);
+			ComponentFactory.GetMySqlObject().GetNetDividend(cashFlow, div, AssetType.Shares,0);
 		}
 		public void GetRental(int month, int year)
 		{

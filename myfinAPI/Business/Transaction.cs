@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using myfinAPI.Factory;
 using myfinAPI.Model;
+using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
 using static myfinAPI.Model.AssetClass;
 
@@ -11,32 +12,34 @@ namespace myfinAPI.Business
 {
 	public class Transaction
 	{
+		private Dictionary<int, double> yearlyIntrestOnBonds;
 		 
 		public IList<AssetHistory> GetYearlyInvestment(int folioid)
 		{
+			yearlyIntrestOnBonds = new Dictionary<int, double>();
 			IList<AssetHistory> result = new List<AssetHistory>();
 			IList<EquityTransaction> transactions = new List<EquityTransaction>();
 			ComponentFactory.GetMySqlObject().GetAllTransaction(folioid, transactions);
 			ComponentFactory.GetBondhelperObj().GetBondTransaction(folioid, transactions);
 			ComponentFactory.GetBankObject().GetYearlyPFTransaction(folioid, AssetType.PPF, transactions);
-	 
+			ComponentFactory.GetBondhelperObj().GetYearWiseIntrest(yearlyIntrestOnBonds,folioid);
 			int Year = DateTime.Now.Year;
 
 			while (Year > 2015)
 			{
 				AssetHistory yearlyHistory = new AssetHistory();
 				var shareTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType== AssetType.Shares);
-				AddHistory(shareTranList, AssetType.Shares, Year, result);
+				GetHistoricAssetValue(shareTranList, AssetType.Shares, Year, result);
 				var debtTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.Debt_MF);
-				AddHistory(debtTranList, AssetType.Debt_MF, Year, result);
+				GetHistoricAssetValue(debtTranList, AssetType.Debt_MF, Year, result);
 				var eqtyTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.Equity_MF);
-				AddHistory(eqtyTranList, AssetType.Equity_MF, Year, result);
+				GetHistoricAssetValue(eqtyTranList, AssetType.Equity_MF, Year, result);
 				var bondsTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.Bonds);
-				AddHistory(bondsTranList, AssetType.Bonds, Year, result);
+				GetHistoricAssetValue(bondsTranList, AssetType.Bonds, Year, result);
 				var pfTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.PF);
-				AddHistory(pfTranList, AssetType.PF, Year, result);
+				GetHistoricAssetValue(pfTranList, AssetType.PF, Year, result);
 				var ppfTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.PPF);
-				AddHistory(ppfTranList, AssetType.PPF, Year, result);
+				GetHistoricAssetValue(ppfTranList, AssetType.PPF, Year, result);
 
 				Year--;
 			}			  
@@ -113,49 +116,65 @@ namespace myfinAPI.Business
 			}
 			return yrNewEqtInvst;
 		}
-		private void AddHistory(IEnumerable<EquityTransaction> eqtTranList,
+		private void GetHistoricAssetValue(IEnumerable<EquityTransaction> eqtTranList,
 			AssetType assetType, int year, IList<AssetHistory> result)
 		{
-			AssetHistory yearlyHistory = new AssetHistory();
-			yearlyHistory.Assettype = assetType;
-			yearlyHistory.year = year;
 			double pAstValue = 0;
 			double cAstValue = 0;
-			IList<AssetHistory> currentYearSnapshots = ComponentFactory.GetSnapshotObj().GetYearlySnapshot(assetType);
-			IList<AssetHistory> previousYearSnapshots = ComponentFactory.GetSnapshotObj().GetYearlySnapshot(assetType);
-			if(year== DateTime.Now.Year)
+			double cInvstValue = 0;
+			double pInvstValue = 0;
+			IList<dividend> div = new List<dividend>();
+
+			AssetHistory yearlyHistory = new AssetHistory();
+			ComponentFactory.GetMySqlObject().GetAssetWiseNetDividend(div, assetType);
+			yearlyHistory.Assettype = assetType;
+			yearlyHistory.year = year;
+			 
+			IList<AssetHistory> currentYearSnapshots = ComponentFactory.GetSnapshotObj().GetYearlySnapShot(assetType);
+			IList<AssetHistory> previousYearSnapshots = currentYearSnapshots;
+			if (year== DateTime.Now.Year)
 			{
 				//yearlyHistory.profitCurrentyear = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue - previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).AssetValue;
-				cAstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue+ currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Dividend;
-				pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month ==12).AssetValue+ previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;
+				cAstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue+
+					currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Dividend;
+				pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month ==12).AssetValue+ 
+					previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;
+				cInvstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Investment;
+				pInvstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month == 12).Investment;				
 			}
 			else
 			{
 				try
 				{
 					cAstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == 12).AssetValue+ currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == 12).Dividend;
-					pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).AssetValue+ previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;					
+					pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).AssetValue+ previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;
+					cInvstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == 12).Investment;
+					pInvstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Investment;
+					 
 				}
 				catch(Exception ex)
 				{
-
 					string msg = ex.Message;
 				}				
 				//yearlyHistory.profitCurrentyear = cAstValue - pAstValue;
 			}
-			
-			foreach (EquityTransaction t in eqtTranList)
+			yearlyHistory.Investment = cInvstValue - pInvstValue;
+			yearlyHistory.AssetValue= cAstValue- pAstValue;
+			double netDiv = 0;
+			var element = div.ToList().Find(x => x.dt.Year == year);
+			if (element != null)
 			{
-				if (t.tranType == TranType.Buy || t.tranType==TranType.Deposit ||t.tranType==TranType.Intrest)
-				{
-					yearlyHistory.Investment += t.qty * t.price;
-				}
-				else if (t.tranType == TranType.Sell)
-				{
-					yearlyHistory.Investment -= t.qty * t.price;
-				}
+				netDiv = div.First(x => x.dt.Year == year).divValue;
 			}
-			yearlyHistory.profitCurrentyear = cAstValue - pAstValue - yearlyHistory.Investment;
+
+			yearlyHistory.profitCurrentyear = (cAstValue - pAstValue) - (cInvstValue - pInvstValue) + netDiv;
+						
+			//if (assetType == AssetType.Bonds)
+			//{
+			//	double Intrest;
+			//	yearlyIntrestOnBonds.TryGetValue(year, out Intrest);
+			//	yearlyHistory.profitCurrentyear += Intrest;
+			//}
 			result.Add(yearlyHistory);
 		}
 

@@ -10,6 +10,7 @@ using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
+using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Controller
 {
@@ -43,6 +44,7 @@ namespace myfinAPI.Controller
 			//return ComponentFactory.GetMySqlObject().GetDividend(name).ToArray();
 			return ComponentFactory.GetPortfolioObject().GetCompanyWiseDiv(year).ToArray();
 		}
+	 
 		[HttpPost("updateequity")]
 		public bool updateEquity(ShareInfo shrDetail)
 		{

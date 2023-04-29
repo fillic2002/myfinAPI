@@ -16,8 +16,8 @@ namespace myfinAPI.Controller
 	[ApiController]
 	public class TransactionController : ControllerBase
 	{
-		[HttpGet("getfolio/{portfolioId}")]
-		public ActionResult<IEnumerable<EquityTransaction>> GetPortfolio(int portfolioId)
+		[HttpGet("getAllTransaction/{portfolioId}")]
+		public ActionResult<IEnumerable<EquityTransaction>> GetAllTransaction(int portfolioId)
 		{
 			IList<EquityTransaction> transactionList = new List<EquityTransaction>();
 			 ComponentFactory.GetEquityHelperObj().GetAllTransaction(portfolioId, transactionList);

@@ -15,30 +15,30 @@ namespace myfinAPI.Data
 		{
 			  _connString= "Server = localhost; Database = myfin; Uid = root; Pwd = Welcome@1; ";
 		}
-		public bool AddBondDetails(Bond bondDetails)
-		{
-			using (MySqlConnection _conn = new MySqlConnection(_connString))
-			{
-				_conn.Open();
-				try
-				{
-					MySqlCommand command = null;
-					string dt = bondDetails.dateOfMaturity.ToString("yyyy-MM-dd");
-					command = new MySqlCommand(@"INSERT INTO myfin.bonddetails(Bondid,BondName,CouponRate,DOM,facevalue,minInvst,symbols) 
-				Values( '"+ bondDetails.BondId+"','" +bondDetails.BondName + "'," + bondDetails.couponRate + ",'" + dt+ "'," + bondDetails.faceValue + 
-						"," + bondDetails.minInvst+",'"+bondDetails.symbol +"'); ", _conn);
-					int count = command.ExecuteNonQuery();
-					if (count > 0)
-						return true;
-					else
-						return false;
-				}
-				catch (Exception ex)
-				{
-					return false;
-				}
-			}
-		}
+		//public bool AddBondDetails(Bond bondDetails)
+		//{
+		//	using (MySqlConnection _conn = new MySqlConnection(_connString))
+		//	{
+		//		_conn.Open();
+		//		try
+		//		{
+		//			MySqlCommand command = null;
+		//			string dt = bondDetails.dateOfMaturity.ToString("yyyy-MM-dd");
+		//			command = new MySqlCommand(@"INSERT INTO myfin.bonddetails(Bondid,BondName,CouponRate,DOM,facevalue,minInvst,symbols) 
+		//		Values( '"+ bondDetails.BondId+"','" +bondDetails.BondName + "'," + bondDetails.couponRate + ",'" + dt+ "'," + bondDetails.faceValue + 
+		//				"," + bondDetails.minInvst+",'"+bondDetails.symbol +"'); ", _conn);
+		//			int count = command.ExecuteNonQuery();
+		//			if (count > 0)
+		//				return true;
+		//			else
+		//				return false;
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			return false;
+		//		}
+		//	}
+		//}
 		public bool AddExpense(ExpenseDTO exp)
 		{
 			using (MySqlConnection _conn = new MySqlConnection(_connString))

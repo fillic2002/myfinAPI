@@ -18,7 +18,8 @@ namespace myfinAPI.Model
 		public double ownership { get; set; }
 		public double coupon { get; set; }
 		public double PB_Tran { get; set; }
-		public double MarketCap_Tran { get; set; }		 
+		public double MarketCap_Tran { get; set; }
+		public bool verified { get; set; }
 
 	}
 

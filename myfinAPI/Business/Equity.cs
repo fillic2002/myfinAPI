@@ -17,6 +17,7 @@ namespace myfinAPI.Business
 		public void GetAllTransaction(int folioId, IList<EquityTransaction> tranDetails)
 		{
 			ComponentFactory.GetMySqlObject().GetAllTransaction(folioId, tranDetails);
+			ComponentFactory.GetBondhelperObj().GetBondTransaction(folioId, tranDetails);
 		}
 		private void GetEquityHoldingAtDate(int folioId, DateTime dt)
 		{

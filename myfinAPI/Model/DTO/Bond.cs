@@ -10,9 +10,9 @@ namespace myfinAPI.Model.DTO
 	{
 		public DateTime updateDate { get; set; }
 		public double couponRate { get; set; }
-		public string BondName{ get; set; }
-		public string BondId { get; set; }		
-		public double minInvst{ get; set; }
+		public string BondName { get; set; }
+		public string BondId { get; set; }
+		public double minInvst { get; set; }
 		public DateTime dateOfMaturity { get; set; }
 		public DateTime firstIPDate { get; set; }
 		public double LivePrice { get; set; }
@@ -25,16 +25,40 @@ namespace myfinAPI.Model.DTO
 		public string intrestCycle { get; set; }
 		public string rating { get; set; }
 		public string symbol { get; set; }
+		public string issuer { get; set; }
 	}
-	public class BondTransaction:Bond
+	public class BondTransaction
 	{
 		public Bond BondDetail { get; set; }
 		//public string BondName { get; set; }
 		public double InvstPrice { get; set; }
 		public double Qty { get; set; }
-		public int folioId{ get; set; }
+		public int folioId { get; set; }
 		public DateTime purchaseDate { get; set; }
 		public TranType TranType { get; set; }
+		public double AccuredIntrest { get; set; }
+	}
+	public class BondIntrest
+	{ 
+		public double amt { get; set; }
+		public DateTime intrestPaymentDate { get; set; }
+		public TranType TranType { get; set; }
+		public Bond BondDetail { get; set; }
+		public int folioId { get; set; }
+	}
+	public class BondHolding
+	{
+		public Bond BondDetail { get; set; }
+		public int folioId { get; set; }
+		public double Investment { get; set; }
+	}
+	public class BondIntrestYearly
+	{
+		public int Year { get; set; }
+		public int folioId { get; set; }
+		public double Intrest { get; set; }
+		public double month { get; set; }
 
 	}
+
 }

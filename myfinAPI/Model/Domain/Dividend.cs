@@ -9,7 +9,6 @@ namespace myfinAPI.Model.Domain
 	{
 		public DateTime dt { get; set; }		
 		public double divValue { get; set; }
-
 		public EquityBase eqt{get;set;}
 	}
 }

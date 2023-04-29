@@ -28,7 +28,8 @@ namespace myfinAPI.Model
             Bonus=5,
             Intrest =6,
             Carry=7,
-            Adjustment=8
+            Adjustment=8,
+            AccuredIntrest = 9
         }
     }
     
