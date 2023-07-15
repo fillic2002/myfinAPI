@@ -49,7 +49,7 @@ namespace myfinAPI.Data
 					MySqlCommand command = null;
 					string dt = exp.dtOfTran.ToString("yyyy-MM-dd");
 					command = new MySqlCommand(@"INSERT INTO myfin.expense(dtoftransaction,amt,description,folioid,exptypeId) 
-				Values('" + dt + "'," + exp.amt + ",'" + exp.desc + "'," + exp.folioId + "," + exp.expenseType.expTypeId + "); ", _conn);
+				Values('" + dt + "'," + exp.amt + ",'" + exp.desc + "'," + exp.folioId + "," + (int)exp.expenseType + "); ", _conn);
 					int count = command.ExecuteNonQuery();
 					if (count > 0)
 						return true;

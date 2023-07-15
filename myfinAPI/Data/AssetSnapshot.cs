@@ -155,10 +155,16 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				MySqlCommand command = null;
-				command = new MySqlCommand(@"SELECT month,year, sum(assetvalue)as assetvalue,sum(dividend)as dividend ,sum(invstmt) as invstmt, assettype FROM myfin.assetsnapshot 
+				if (folioId == 0)
+				{
+					command = new MySqlCommand(@"SELECT month,year, sum(assetvalue)as assetvalue,sum(dividend)as dividend ,sum(invstmt) as invstmt, assettype FROM myfin.assetsnapshot 
 					where assettype=" + (int)astType + "" +
-					" group by month,year,assettype order by year desc, month desc;", _conn);
-
+						" group by month,year,assettype order by year desc, month desc;", _conn);
+				}
+				else {
+					command = new MySqlCommand(@"SELECT month,year, sum(assetvalue)as assetvalue,sum(dividend)as dividend ,sum(invstmt) as invstmt, assettype FROM myfin.assetsnapshot 
+					where assettype=" + (int)astType + " and portfolioid= "+folioId+" group by month,year,assettype order by year desc, month desc;", _conn);
+				}
 				using var reader = command.ExecuteReader();
 				try
 				{
@@ -171,8 +177,9 @@ namespace myfinAPI.Data
 							Investment = Convert.ToDouble(reader["invstmt"]),
 							AssetValue = Convert.ToDouble(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
-							Assettype = (AssetType)Convert.ToInt32(reader["assettype"])
-						}); ;
+							Assettype = (AssetType)Convert.ToInt32(reader["assettype"]),
+							portfolioId = folioId
+						}); 
 					}
 				}
 				catch (Exception ex)
@@ -261,7 +268,7 @@ namespace myfinAPI.Data
 				return assetReturn;
 			}
 		}
-		public IList<AssetHistory> GetYearlySnapShot(AssetType assetId)
+		public IList<AssetHistory> GetYearlySnapShot(AssetType assetId, int folioId)
 		{
 			IList<AssetHistory> assetReturn = new List<AssetHistory>();
 			using (MySqlConnection _conn = new MySqlConnection(_connString))
@@ -270,15 +277,33 @@ namespace myfinAPI.Data
 				MySqlCommand command = null;
 				if (assetId == (AssetType)0)
 				{
-					command = new MySqlCommand(@"SELECT year,month, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
-								where month in (1,12) or (month=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))
-								group by month,year	order by year asc;", _conn);
+					if (folioId > 0)
+					{
+						command = new MySqlCommand(@"SELECT year,month, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+								where portfolioid=" + folioId + " AND (month in (1,12) or (month=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))) " +
+									"group by month,year order by year asc;", _conn);
+					}
+					else
+					{
+						command = new MySqlCommand(@"SELECT year,month, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+								where month in (1,12) or (month=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE())) " +
+									"group by month,year order by year asc;", _conn);
+					}					
 				}
 				else
 				{
-					command = new MySqlCommand(@"SELECT year,month,assettype, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+					if (folioId == 0)
+					{
+						command = new MySqlCommand(@"SELECT year,month,assettype, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
 								where (month in (12) or (month=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))) and assettype=" + (int)assetId + " " +
-								"group by month,year, assettype  order by year asc; ", _conn);
+									"group by month,year, assettype  order by year asc; ", _conn);
+					}
+					else
+					{
+						command = new MySqlCommand(@"SELECT year,month,assettype, sum(assetvalue) as assetvalue,sum(dividend) as dividend ,sum(invstmt) as invstmt FROM myfin.assetsnapshot 
+								where portfolioid="+ folioId +" AND (month in (12) or (month=MONTH(CURRENT_DATE()) AND year=year(CURRENT_DATE()))) and assettype=" + (int)assetId + " " +
+									"group by month,year, assettype  order by year asc; ", _conn);
+					}
 				}
 				using var reader = command.ExecuteReader();
 				try
@@ -292,8 +317,8 @@ namespace myfinAPI.Data
 							Investment = Convert.ToDouble(reader["invstmt"]),
 							AssetValue = Convert.ToDouble(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
-							Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"]))
-
+							Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"])),
+							portfolioId=folioId
 						});
 					}
 				}

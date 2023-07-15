@@ -187,6 +187,11 @@ namespace myfinAPI.Controller
 		{
 			return ComponentFactory.GetPortfolioObject().GetMonthlyInvestment(folioid, lastmonths).ToArray();
 		}
+		[HttpGet("GetAssetAllocationBySize/{folioid}")]
+		public ActionResult<IList<Model.DTO.AssetClass>> GetAsstAllocation(int folioid)
+		{
+			return ComponentFactory.GetPortfolioObject().GetAssetAllocationBySize(folioid).ToArray();
+		}
 
 	}
 }

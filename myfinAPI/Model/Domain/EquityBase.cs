@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using myfinAPI.Model.DTO;
 using static myfinAPI.Model.AssetClass;
 
 namespace myfinAPI.Model
@@ -21,6 +22,7 @@ namespace myfinAPI.Model
 		public string sourceurl { get; set; }
 		public string divUrl { get; set; }
 		public AssetType assetType { get; set; }
+		public CompanySize category { get; set; }
 	}
 	public class AssetBase
 	{

@@ -18,7 +18,7 @@ namespace myfinAPI.Model
 		public double InvestmentEmplr { get; set; }
 		public double Pension { get; set; }
 		public DateTime DateOfTransaction{ get; set; }
-		public int AccountType { get; set; }
+		public AssetType AccountType { get; set; }
 
 		public int CompareTo([AllowNull] PFAccount other)
 		{
@@ -30,31 +30,5 @@ namespace myfinAPI.Model
 			return Comparer<int>.Default.Compare(this.Year, other.Year);
 		}
 	}
-	//public class PFComparer : IComparable<PFAccount>
-	//{
-	//	public int CompareTo(PFAccount x, PFAccount y)
-	//	{
-	//		if (object.ReferenceEquals(x, y))
-	//		{
-	//			return 0;
-	//		}
-
-	//		if (x == null)
-	//		{
-	//			return -1;
-	//		}
-
-	//		if (y == null)
-	//		{
-	//			return 1;
-	//		}
-
-	//		return x.Year.CompareTo(y.Year);
-	//	}
-
-	//	public int CompareTo([AllowNull] PFAccount other)
-	//	{
-	//		throw new NotImplementedException();
-	//	}
-	//}
+	
 }

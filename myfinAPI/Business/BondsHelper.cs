@@ -462,7 +462,7 @@ namespace myfinAPI.Business
 			}
 			else
 			{
-				asstHistory = ComponentFactory.GetSnapshotObj().GetYearlySnapShot(assetId);
+				asstHistory = ComponentFactory.GetSnapshotObj().GetYearlySnapShot(assetId,folioid);
 			}
 			CashItem PreviousYearInvst = new CashItem();
 			ComponentFactory.GetMySqlObject().GetYearlyDividend(assetId, yearlyDivDetails, folioid);

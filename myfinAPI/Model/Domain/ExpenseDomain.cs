@@ -18,4 +18,18 @@ namespace myfinAPI.Model.Domain
 		public int expId { get; set; }
 		public string expTypeDesc { get; set; }
 	}
+	public enum ExpenseType
+	{
+		Internet = 1,
+		HouseRent,
+		LoanEMI,
+		UPI,
+		Mobile,
+		School,
+		Electricity,
+		TataSky,
+		GasCylinder,
+		Sodexo,
+		CashExp
+	}
 }

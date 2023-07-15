@@ -8,7 +8,16 @@ namespace myfinAPI.Model.DTO
 	public class AssetClass
 	{
 		public string AssetClassName { get; set; }
-		public string Investment { get; set; }
-		public string Profit { get; set; }
+		public double Investment { get; set; }
+		public double Profit { get; set; }
+		public double percent{ get; set; }
+		public CompanySize cmpSize { get; set; }
+	}
+	public enum CompanySize
+	{
+		Small,
+		Mid,
+		Large,
+		Enterprise
 	}
 }

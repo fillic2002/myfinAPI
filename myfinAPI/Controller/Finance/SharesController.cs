@@ -34,15 +34,13 @@ namespace myfinAPI.Controller
 		}
 		[HttpGet("getdividend/{name}")]
 		public ActionResult<IEnumerable<dividend>> getdividend(string name)
-		{
-			//return ComponentFactory.GetMySqlObject().GetDividend(name).ToArray();
-			return ComponentFactory.GetPortfolioObject().GetDividend(name).ToArray();
+		{	
+			return ComponentFactory.GetEquityHelperObj().GetDividend(name).ToArray();
 		}
 		[HttpGet("getYearlyCompDividend/{year}")]
 		public ActionResult<IEnumerable<portfolio>> getCompanyWisedividend(int year)
-		{
-			//return ComponentFactory.GetMySqlObject().GetDividend(name).ToArray();
-			return ComponentFactory.GetPortfolioObject().GetCompanyWiseDiv(year).ToArray();
+		{	
+			return ComponentFactory.GetEquityHelperObj().GetCompanyWiseDiv(year).ToArray();
 		}
 	 
 		[HttpPost("updateequity")]

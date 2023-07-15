@@ -9,6 +9,7 @@ using myfinAPI.Model.Domain;
 using myfinAPI.Model.DTO;
 using MySqlConnector;
 using static myfinAPI.Model.AssetClass;
+using ExpenseType = myfinAPI.Model.DTO.ExpenseType;
 using ExpType = myfinAPI.Model.DTO.ExpType;
 
 namespace myfinAPI.Data
@@ -179,14 +180,14 @@ namespace myfinAPI.Data
 					if (portfolioId == 0)
 					{
 						 
-						command = new MySqlCommand(@"SELECT et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol
+						command = new MySqlCommand(@"SELECT  ed.sector,et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol,et.tranid,et.transactionid
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on et.isin = ed.isin Order by et.transactiondate desc;", _conn);
 					}
 					else
 					{
-						command = new MySqlCommand(@"SELECT et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol
+						command = new MySqlCommand(@"SELECT  ed.sector,et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol,et.tranid,et.transactionid
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + " Order by et.transactiondate desc;", _conn);
@@ -197,6 +198,17 @@ namespace myfinAPI.Data
 					{
 						while (reader.Read())
 						{
+							Guid id;
+							if (String.IsNullOrEmpty(reader["tranid"].ToString()) == true)
+							{
+								id = Guid.NewGuid();
+								updateTranGUID(id, Convert.ToInt32(reader["transactionid"].ToString()));
+							}
+							else
+							{
+								string ids = reader["tranid"].ToString();
+								id = Guid.Parse(ids);
+							}
 							transactionList.Add(new EquityTransaction()
 							{
 								
@@ -206,16 +218,16 @@ namespace myfinAPI.Data
 								price = Convert.ToDouble(reader["price"]),
 								PB_Tran = Convert.ToDouble(reader["pb_tran"]),
 								tranType = (TranType) Convert.ToInt16(reader["action"]),
-								MarketCap_Tran = Convert.ToDouble(reader["mc_Tran"]),
-								//assetTypeId = (AssetType)Convert.ToInt32(reader["assettypeid"]),
-
-
+								MarketCap_Tran = Convert.ToDouble(reader["mc_Tran"]),								
+								id= Convert.ToInt32(reader["transactionid"].ToString()),
+								tranId= id,
 								equity = new EquityBase()
 								{									
 									equityName = reader["name"].ToString(),
-							 symbol = reader["symbol"].ToString(),
+									 symbol = reader["symbol"].ToString(),
 									assetId = reader["isin"].ToString(),
-									assetType = (AssetType)Convert.ToInt32(reader["assettypeid"])
+									assetType = (AssetType)Convert.ToInt32(reader["assettypeid"]),
+									sector = reader["sector"].ToString(),
 								}
 
 							});
@@ -230,6 +242,18 @@ namespace myfinAPI.Data
 			}
 
 		}
+
+		private int updateTranGUID(Guid id, int tranId)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				MySqlCommand command;
+				command = new MySqlCommand(@"update myfin.equitytransactions set tranId='"+id+"' where transactionid="+tranId+";", _conn);
+				return command.ExecuteNonQuery();
+			}
+		}
+
 		public IList<EquityTransaction> GetYearlyInvstPerEqt(int portfolioId, string equityId, IList<EquityTransaction> transactionList)
 		{
 			try
@@ -296,13 +320,13 @@ namespace myfinAPI.Data
 					MySqlCommand command;
 					if (portfolioId ==0)
 					{
-						command = new MySqlCommand(@"select isin,portfolioId,transactiondate,qty,price,marketcap,action,pb,openshare,verified
+						command = new MySqlCommand(@"select isin,portfolioId,transactiondate,qty,price,marketcap,action,pb,openshare,verified,tranId
 								from myfin.equitytransactions etr
 								where ISIN='" + equityId + "' Order by transactiondate asc;",_conn);
 					}
 					else
 					{
-						 command = new MySqlCommand(@"select isin,portfolioId,transactiondate,qty,price,marketcap,action,pb,openshare,verified
+						 command = new MySqlCommand(@"select isin,portfolioId,transactiondate,qty,price,marketcap,action,pb,openshare,verified,tranId
 												from myfin.equitytransactions etr
 												where ISIN='" + equityId + "' and portfolioid=" + portfolioId + " Order by transactiondate asc;", _conn);
 					}
@@ -336,7 +360,7 @@ namespace myfinAPI.Data
 								MarketCap_Tran = Convert.ToDouble(reader["marketcap"]),								
 								tranType = (TranType)Convert.ToInt32(reader["action"]),
 								PB_Tran = Convert.ToDouble(reader["pb"]),								
-								//freefloat= (ulong)Convert.ToInt64(reader["openshare"]),
+								tranId = Guid.Parse(reader["tranId"].ToString()),
 								ownership = ownership,
 								verified = Convert.ToBoolean(reader["verified"]),
 								equity = new EquityBase()
@@ -414,16 +438,15 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.DateOfTransaction.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"INSERT INTO myfin.pf (dtofchange,emp,employer, pension,typeofcredit,folioid,acttype,year, month) 
-												VALUES ( '" + dt+ "'," + tran.InvestmentEmp + "," + tran.InvestmentEmplr+ "," + tran.Pension + ",'" + 
-												tran.TypeOfTransaction + "',"+ tran.Folioid +","+tran.AccountType +",'" + tran.DateOfTransaction.Year+ "','"+ tran.DateOfTransaction.Month +"');", _conn);
+				using var command = new MySqlCommand(@"INSERT INTO myfin.pf (dtofchange,emp,employer, pension,typeofcredit,folioid,acttype) 
+												VALUES ( '" + dt+ "'," + tran.InvestmentEmp + "," + tran.InvestmentEmplr+ "," + tran.Pension + "," + 
+												(int)tran.TypeOfTransaction + ","+ tran.Folioid +","+(int)tran.AccountType +");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
 			return true;
 		}
 		public bool PostBankTransaction(BankTransaction tran)
 		{
-
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
@@ -440,8 +463,20 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"REPLACE INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate,PB,marketcap) 
-												VALUES ( " + tran.price + ",'" + (int)tran.tranType + "','" + tran.equity.assetId + "'," + tran.qty + "," + tran.portfolioId + ",'" + dt + "',"+tran.equity.PB + ","+tran.equity.MarketCap + ");", _conn);
+				using var command = new MySqlCommand(@"REPLACE INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate,PB,marketcap,tranid) 
+												VALUES ( " + tran.price + ",'" + (int)tran.tranType + "','" + tran.equity.assetId + "'," + tran.qty + "," + tran.portfolioId + ",'" 
+													+ dt + "',"+tran.equity.PB + ","+tran.equity.MarketCap + ",'"+ Guid.NewGuid() +"');", _conn);
+				int result = command.ExecuteNonQuery();
+			}
+			return true;
+		}
+		public bool TransactionVerified(EquityTransaction tran)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				 
+				using var command = new MySqlCommand(@"update myfin.equitytransactions set verified = 1 where tranid='" + tran.tranId+"';", _conn);
 				int result = command.ExecuteNonQuery();
 			}
 			return true;
@@ -501,17 +536,18 @@ namespace myfinAPI.Data
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
+				//NOTE:: YEAR and MONTH column is going to be obsolete in PF DB TABLE
 				_conn.Open();
 				MySqlCommand command;
 				if (folioId == 0)
 				{
 					command = new MySqlCommand(@"SELECT *
-									FROM myfin.pf where Acttype=" + acctType + " AND Year="+yr+";", _conn);
+									FROM myfin.pf where Acttype=" + acctType + " AND YEAR(dtofchange)="+yr+";", _conn);
 				}
 				else
 				{
 					command = new MySqlCommand(@"SELECT *
-									FROM myfin.pf where Acttype=" + acctType + " and folioid="+folioId+ " AND Year=" + yr + ";", _conn);
+									FROM myfin.pf where Acttype=" + acctType + " and folioid="+folioId+ " AND YEAR(dtofchange)=" + yr + ";", _conn);
 				}
 
 				using var reader = command.ExecuteReader();
@@ -520,7 +556,7 @@ namespace myfinAPI.Data
 				{
 					acct.Add(new PFAccount()
 					{
-						Year = Convert.ToInt32(reader["year"]),
+						Year = Convert.ToInt32(Convert.ToDateTime(reader["dtofchange"]).Year),
 						InvestmentEmp = Convert.ToDouble(reader["emp"]),
 						TypeOfTransaction = Enum.Parse<TranType>( reader["typeofcredit"].ToString()),
 						InvestmentEmplr = Convert.ToDouble(reader["employer"]),
@@ -766,7 +802,7 @@ namespace myfinAPI.Data
 				_conn.Open();
 				//IList<dividend> _eqs = new List<dividend>();
 				using var command = new MySqlCommand(@"select sum(Dividend) dividend,ISIN,Year(dtupdated)yr from myfin.dividend where 
-							ISIN= '" + companyId + "' and typeofcredit='Dividend' group by Year(dtupdated);", _conn);
+							ISIN= '" + companyId + "' and typeofcredit in('IntDividend','FDividend')  group by Year(dtupdated);", _conn);
 				using var reader = command.ExecuteReader();
 				while (reader.Read())
 				{
@@ -862,15 +898,24 @@ namespace myfinAPI.Data
 				}
 			}
 		}
-		public void GetAssetWiseNetDividend(IList<dividend> div, AssetType asttype)
+		public void GetAssetWiseNetDividend(IList<dividend> div, AssetType asttype, int folioId)
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-
-				using var command = new MySqlCommand(@"select sum(dividend) dividend,month, year from myfin.assetsnapshot 
-					where assettype= "+(Int16)asttype+" group by year " +
+				MySqlCommand command = null;
+				if (folioId == 0)
+				{
+					command = new MySqlCommand(@"select sum(dividend) dividend,month, year from myfin.assetsnapshot 
+					where assettype= " + (Int16)asttype + " group by year " +
+						"order by year desc,month desc;", _conn);
+				}
+				else
+				{
+					command = new MySqlCommand(@"select sum(dividend) dividend,month, year from myfin.assetsnapshot 
+					where assettype= " + (Int16)asttype + " and portfolioid="+folioId+" group by year " +
 					"order by year desc,month desc;", _conn);
+				}
 				var reader = command.ExecuteReader();
 
 				while (reader.Read())
@@ -1138,11 +1183,7 @@ namespace myfinAPI.Data
 						{	
 							amt= Convert.ToDouble(reader["amt"]),
 							expId = Convert.ToInt16(reader["expId"]),
-							expenseType = new ExpType()
-							 {
-								  expTypeId = Convert.ToInt16(reader["exptypeid"]),
-								  expTypeDesc = reader["expDesc"].ToString()
-							 },
+							expenseType = (ExpenseType)Enum.Parse(typeof(ExpenseType),reader["exptypeid"].ToString()),							 
 							folioId = Convert.ToInt32(reader["folioId"]),
 							desc = reader["description"].ToString()
 						});

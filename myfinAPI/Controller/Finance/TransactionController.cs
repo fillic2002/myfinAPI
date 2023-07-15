@@ -33,12 +33,12 @@ namespace myfinAPI.Controller
 		{
 			return ComponentFactory.GetMySqlObject().GetTransaction(folio, month, asstType,year).ToArray();
 		}
-		[HttpGet("getInvestment/{flag}")]
-		public ActionResult<IEnumerable<AssetHistory>> GetInvestmentPerYear(string flag)
+		[HttpGet("getInvestment/{flag}/{folioId}")]
+		public ActionResult<IEnumerable<AssetHistory>> GetInvestmentPerYear(string flag, int folioId)
 		{
 			if (flag == "Yearly")
 			{
-				return ComponentFactory.GetTranObject().GetYearlyInvestment(0).ToArray();
+				return ComponentFactory.GetTranObject().GetYearlyInvestment(folioId).ToArray();
 			}
 			else
 			{
@@ -72,11 +72,21 @@ namespace myfinAPI.Controller
 			}
 			return false;
 		}
+		[HttpPost("verifyTransaction")]
+		public ActionResult<bool> VerifyTransaction(EquityTransaction tran)
+		{
+			return ComponentFactory.GetEquityHelperObj().VerifyTransaction(tran);
+		}
 
 		[HttpPost("AddBankTransaction")]
 		public ActionResult<bool> PostBankTransaction(BankTransaction tran)
 		{			  
-			return ComponentFactory.GetTranObject().AddPFTransaction(tran);			  
+			return ComponentFactory.GetTranObject().AddBankTran(tran);			
+		}
+		[HttpPost("AddPFTransaction")]
+		public ActionResult<bool> PostPFTransaction(PFAccount tran)
+		{			
+			return ComponentFactory.GetTranObject().AddPFTran(tran);
 		}
 		[HttpPost("deletetransction")]
 		public ActionResult<bool> PostTransaction(EquityTransaction tran)

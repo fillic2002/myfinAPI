@@ -29,21 +29,24 @@ namespace myfinAPI.Business
 			{
 				AssetHistory yearlyHistory = new AssetHistory();
 				var shareTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType== AssetType.Shares);
-				GetHistoricAssetValue(shareTranList, AssetType.Shares, Year, result);
+				GetHistoricAssetValue(shareTranList, AssetType.Shares, Year, result, folioid);
 				var debtTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.Debt_MF);
-				GetHistoricAssetValue(debtTranList, AssetType.Debt_MF, Year, result);
+				GetHistoricAssetValue(debtTranList, AssetType.Debt_MF, Year, result, folioid);
 				var eqtyTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.Equity_MF);
-				GetHistoricAssetValue(eqtyTranList, AssetType.Equity_MF, Year, result);
+				GetHistoricAssetValue(eqtyTranList, AssetType.Equity_MF, Year, result, folioid);
 				var bondsTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.Bonds);
-				GetHistoricAssetValue(bondsTranList, AssetType.Bonds, Year, result);
+				GetHistoricAssetValue(bondsTranList, AssetType.Bonds, Year, result, folioid);
 				var pfTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.PF);
-				GetHistoricAssetValue(pfTranList, AssetType.PF, Year, result);
+				GetHistoricAssetValue(pfTranList, AssetType.PF, Year, result, folioid);
 				var ppfTranList = transactions.Where(x => x.tranDate.Year == Year && x.equity.assetType == AssetType.PPF);
-				GetHistoricAssetValue(ppfTranList, AssetType.PPF, Year, result);
+				GetHistoricAssetValue(ppfTranList, AssetType.PPF, Year, result,folioid);
 
 				Year--;
-			}			  
-			return result;
+			}
+		 
+				return result;
+			
+			//return result.Where(x => x.portfolioId == folioid).ToList();
 		}
 		public IList<AssetHistory> GetMonthlyInvestment(int folioID)
 		{
@@ -76,7 +79,6 @@ namespace myfinAPI.Business
 			}
 			return result;
 		}
-
 		public IList<EquityTransaction> GetYearlyInvestment(int folioId, string eqtId)
 		{
 			IList<EquityTransaction> yearlyTrans = new List<EquityTransaction>();
@@ -117,7 +119,7 @@ namespace myfinAPI.Business
 			return yrNewEqtInvst;
 		}
 		private void GetHistoricAssetValue(IEnumerable<EquityTransaction> eqtTranList,
-			AssetType assetType, int year, IList<AssetHistory> result)
+			AssetType assetType, int year, IList<AssetHistory> result,int folioId)
 		{
 			double pAstValue = 0;
 			double cAstValue = 0;
@@ -126,11 +128,11 @@ namespace myfinAPI.Business
 			IList<dividend> div = new List<dividend>();
 
 			AssetHistory yearlyHistory = new AssetHistory();
-			ComponentFactory.GetMySqlObject().GetAssetWiseNetDividend(div, assetType);
+			ComponentFactory.GetMySqlObject().GetAssetWiseNetDividend(div, assetType, folioId);
 			yearlyHistory.Assettype = assetType;
 			yearlyHistory.year = year;
 			 
-			IList<AssetHistory> currentYearSnapshots = ComponentFactory.GetSnapshotObj().GetYearlySnapShot(assetType);
+			IList<AssetHistory> currentYearSnapshots = ComponentFactory.GetSnapshotObj().GetYearlySnapShot(assetType, folioId);
 			IList<AssetHistory> previousYearSnapshots = currentYearSnapshots;
 			if (year== DateTime.Now.Year)
 			{
@@ -160,6 +162,7 @@ namespace myfinAPI.Business
 			}
 			yearlyHistory.Investment = cInvstValue - pInvstValue;
 			yearlyHistory.AssetValue= cAstValue- pAstValue;
+			yearlyHistory.portfolioId = folioId;
 			double netDiv = 0;
 			var element = div.ToList().Find(x => x.dt.Year == year);
 			if (element != null)
@@ -167,41 +170,16 @@ namespace myfinAPI.Business
 				netDiv = div.First(x => x.dt.Year == year).divValue;
 			}
 
-			yearlyHistory.profitCurrentyear = (cAstValue - pAstValue) - (cInvstValue - pInvstValue) + netDiv;
-						
-			//if (assetType == AssetType.Bonds)
-			//{
-			//	double Intrest;
-			//	yearlyIntrestOnBonds.TryGetValue(year, out Intrest);
-			//	yearlyHistory.profitCurrentyear += Intrest;
-			//}
+			yearlyHistory.profitCurrentyear = (cAstValue - pAstValue) - (cInvstValue - pInvstValue) + netDiv;						
 			result.Add(yearlyHistory);
 		}
-
-		public bool AddPFTransaction(BankTransaction tran)
+		public bool AddPFTran(PFAccount tran)
 		{
-			
-			
-			if (tran.Description == "PPF-Int" || tran.Description == "PPF-Deposit")
-			{
-				 
-				 
-				PFAccount pfobj = new PFAccount()
-				{
-					Month = tran.tranDate.Month,
-					Year = tran.tranDate.Year,
-					DateOfTransaction = tran.tranDate,
-					Folioid = tran.folioId,
-					InvestmentEmp = tran.Amt,
-					InvestmentEmplr = 0,
-					Pension = 0,
-					TypeOfTransaction = tran.Description.Contains("Int")==true? TranType.Intrest:TranType.Deposit,
-					AccountType=tran.AcctId
-				};
-				return ComponentFactory.GetMySqlObject().PostPF_PPFTransaction(pfobj);
-			}
-			else
-				return ComponentFactory.GetMySqlObject().PostBankTransaction(tran);
+			return ComponentFactory.GetMySqlObject().PostPF_PPFTransaction(tran);
+		}
+		public bool AddBankTran(BankTransaction tran)
+		{	
+			return ComponentFactory.GetMySqlObject().PostBankTransaction(tran);
 		}
 
 		//public bool AddEqtyTransaction(EquityTransaction tran)

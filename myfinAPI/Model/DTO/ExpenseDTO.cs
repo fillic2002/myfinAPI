@@ -12,13 +12,27 @@ namespace myfinAPI.Model.DTO
 		public DateTime dtOfTran{ get; set; }
 		public double amt { get; set; }
 		public string desc{ get; set; }
-		public ExpType expenseType { get; set; }		
+		public ExpenseType expenseType { get; set; }		
 
 	}
 	public class ExpType
 	{
 		public int expTypeId { get; set; }
 		public string expTypeDesc { get; set; }
+	}
+	public enum ExpenseType
+	{
+		Internet = 1,
+		HouseRent,
+		LoanEMI,
+		UPI,
+		Mobile,
+		School,
+		Electricity,
+		TataSky,
+		GasCylinder,
+		Sodexo,
+		CashExp
 	}
 	public class MonthlyExpenseDTO
 	{

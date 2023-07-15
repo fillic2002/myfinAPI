@@ -20,7 +20,8 @@ namespace myfinAPI.Model
 		public double PB_Tran { get; set; }
 		public double MarketCap_Tran { get; set; }
 		public bool verified { get; set; }
-
+		public int id { get; set; }
+		public Guid tranId { get; set; }
 	}
 
 }
