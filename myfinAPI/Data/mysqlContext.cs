@@ -756,12 +756,12 @@ namespace myfinAPI.Data
 					_eqs.Add(new dividend()
 					{
 						dt = new DateTime(Convert.ToInt32(reader["yr"]), 1, 1),
-						eqt = new EquityBase() { assetId = reader["isin"].ToString(),
-												equityName= reader["name"].ToString()
-						},						
-						divValue = Convert.ToDouble(reader["dividend"]),
+						//eqt = new EquityBase() { assetId = reader["isin"].ToString(),
+												//equityName= reader["name"].ToString()
+					}						
+					//divValue = Convert.ToDouble(reader["dividend"])
 						
-					});
+					);
 				}			 
 			}			 
 		}
@@ -809,7 +809,7 @@ namespace myfinAPI.Data
 					_eqs.Add(new dividend()
 					{
 						dt = new DateTime(Convert.ToInt32(reader["yr"]),1,1),						
-						eqt = new EquityBase { assetId = reader["isin"].ToString() },
+						//eqt = new EquityBase { assetId = reader["isin"].ToString() },
 						divValue = Convert.ToDouble(reader["dividend"])
 					});
 				}
@@ -844,8 +844,9 @@ namespace myfinAPI.Data
 				}
 			}
 		}
-		public void GetCompanyDividend(string assetId, IList<dividend> d)
+		public IList<dividend> GetCompanyDividend(string assetId)
 		{
+			IList<dividend> d = new List<dividend>();
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
@@ -859,12 +860,36 @@ namespace myfinAPI.Data
 					d.Add(new dividend()
 					{
 						divValue = Convert.ToDouble(reader["dividend"]),
-						eqt = new EquityBase { assetId = reader["isin"].ToString() },
-						dt =Convert.ToDateTime(reader["dtupdated"])
-					}) ;
-				}				
+						//eqt = new EquityBase { assetId = reader["isin"].ToString() },
+						dt = Convert.ToDateTime(reader["dtupdated"])
+					});
+				}
 			}
+			return d;
 		}
+		//public IList<dividend> GetCompanyDividend(string assetId)
+		//{
+		//	IList<dividend> d =new List<dividend>();
+		//	using (MySqlConnection _conn = new MySqlConnection(connString))
+		//	{
+		//		_conn.Open();
+
+		//		using var command = new MySqlCommand(@"select * from myfin.dividend
+		//					where isin='" + assetId + "';", _conn);
+		//		var reader = command.ExecuteReader();
+
+		//		while (reader.Read())
+		//		{
+		//			d.Add(new dividend()
+		//			{
+		//				divValue = Convert.ToDouble(reader["dividend"]),
+		//				//eqt = new EquityBase { assetId = reader["isin"].ToString() },
+		//				dt =Convert.ToDateTime(reader["dtupdated"])
+		//			}) ;
+		//		}				
+		//	}
+		//	return d;
+		//}
 		public void GetNetDividend(IList<CashFlow> d, IList<dividend> div, AssetType astType,int folioId)
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))

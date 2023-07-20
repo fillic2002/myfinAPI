@@ -853,14 +853,13 @@ namespace myfinAPI.Business
 		}
 		public double CalculateDividend(string companyId, IEnumerable<EquityTransaction> t, IList<CashItem> invstYear, portfolio p)
 		{
-			IList<dividend> divDetails = new List<dividend>();
-			ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId, divDetails);
+			IList<dividend> divDetails = ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId);
 
 			double dividend = 0;double netDiv = 0;
 			foreach (dividend div in divDetails)
 			{
 				double q = 0;
-				foreach (EquityTransaction tran in t.Where(x => x.equity.assetId == div.eqt.assetId && x.tranDate < div.dt))
+				foreach (EquityTransaction tran in t.Where(x => x.equity.assetId == companyId && x.tranDate < div.dt))
 				{
 					if (tran.tranType == TranType.Buy || tran.tranType ==TranType.Bonus)
 						q += tran.qty;

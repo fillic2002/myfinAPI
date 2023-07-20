@@ -48,32 +48,32 @@ namespace myfinAPI.Controller
 		/// <param name="after"></param>
 		/// <param name="qty"></param>
 		/// <returns></returns>
-		public double CalculateDividend(string companyId, IList<EquityTransaction> t)
-		{
-			IList<dividend> divDetails = new List<dividend>();
-			ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId, divDetails);
+		//public double CalculateDividend(string companyId, IList<EquityTransaction> t)
+		//{
+		//	IList<dividend> divDetails = new List<dividend>();
+		//	ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId, divDetails);
 			
-			double dividend = 0;
-			foreach (dividend div in divDetails)
-			{
-				double q = 0;
-				foreach (EquityTransaction tran in t.Where(x=>x.equity.assetId==div.eqt.assetId && x.tranDate<div.dt))
-				{					
-						if (tran.tranType == TranType.Buy)
-							q += tran.qty;
-						else
-							q -= tran.qty;					
-				}
+		//	double dividend = 0;
+		//	foreach (dividend div in divDetails)
+		//	{
+		//		double q = 0;
+		//		foreach (EquityTransaction tran in t.Where(x=>x.equity.assetId==div.eqt.assetId && x.tranDate<div.dt))
+		//		{					
+		//				if (tran.tranType == TranType.Buy)
+		//					q += tran.qty;
+		//				else
+		//					q -= tran.qty;					
+		//		}
 
-				if (q > 0)
-				{					 
-					dividend += q * div.divValue;
-					//if(p.folioId==2)
-					//	Console.WriteLine("EQUITY:"+div.companyid +" Dividend:"+ equities[div.companyid]);
-				}
-			}
-			return dividend;
-		}
+		//		if (q > 0)
+		//		{					 
+		//			dividend += q * div.divValue;
+		//			//if(p.folioId==2)
+		//			//	Console.WriteLine("EQUITY:"+div.companyid +" Dividend:"+ equities[div.companyid]);
+		//		}
+		//	}
+		//	return dividend;
+		//}
 		public double getLivePrice(portfolio n)
 		{
 			Task<double> task = new Task<double>(() =>
