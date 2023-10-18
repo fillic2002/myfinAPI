@@ -29,7 +29,10 @@ namespace myfinAPI.Model
             Intrest =6,
             Carry=7,
             Adjustment=8,
-            AccuredIntrest = 9
+            AccuredIntrest = 9,
+            InterDividend =10,
+            FinalDividend= 11,
+            SpclDividend=12
         }
     }
     

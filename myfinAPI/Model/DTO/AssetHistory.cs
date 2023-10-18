@@ -9,14 +9,14 @@ namespace myfinAPI.Model
 	public class AssetHistory
 	{
 		public int portfolioId { get; set; }
-		public double AssetValue { get; set; }
-		public double Dividend { get; set; }
-		public double Investment { get; set; }
+		public decimal AssetValue { get; set; }
+		public decimal Dividend { get; set; }
+		public decimal Investment { get; set; }
 		public int month { get; set; }
 		public int year { get; set; }
-		public double qty { get; set; }
+		public decimal qty { get; set; }
 		public AssetType Assettype { get; set; }
-		public double profitCurrentyear { get; set; }
+		public decimal profitCurrentyear { get; set; }
 
 	}
 }

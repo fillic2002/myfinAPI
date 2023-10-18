@@ -10,9 +10,9 @@ namespace myfinAPI.Model.Domain
 	{
 		public int Id { get; set; }
 		public string SectorName { get; set; }
-		public double Invested { get; set; }
-		public double CurrentValue { get; set; }
-		public double Dividend { get; set; }
+		public decimal Invested { get; set; }
+		public decimal CurrentValue { get; set; }
+		public decimal Dividend { get; set; }
 		//public double CompareTo([AllowNull] SectorAssetDistribution other)
 		//{
 		//	if (other == null)

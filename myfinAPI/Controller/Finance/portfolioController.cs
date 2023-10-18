@@ -19,25 +19,23 @@ namespace myfinAPI.Controller
 	public class portfolioController : ControllerBase
 	{
 		[HttpGet("Getfolio/{portfolioId}")]
-		public ActionResult<IEnumerable<portfolio>> GetPortfolio(int portfolioId)
+		public ActionResult<IEnumerable<Investment>> GetPortfolio(int portfolioId)
 		{
-			List<portfolio> PortFolios = new List<portfolio>();			
-			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios,DateTime.UtcNow.Year);
-			return PortFolios.Where(x=>x.qty>0).ToArray();			
+			List<Investment> instmts = new List<Investment>();			
+			ComponentFactory.GetInvestHelperObj().GetFolioInvestments(portfolioId, instmts,DateTime.UtcNow.Year);
+			return instmts.Where(x=>x.qty>0).ToArray();		
 		}
 		[HttpGet("AssetDistribution/{portfolioId}")]
-		public ActionResult<IEnumerable<portfolio>> AssetDistribution(int portfolioId)
+		public ActionResult<IEnumerable<Investment>> AssetDistribution(int portfolioId)
 		{
-			List<portfolio> PortFolios = new List<portfolio>();
-			ComponentFactory.GetPortfolioObject().GetFolio(portfolioId, PortFolios,DateTime.UtcNow.Year);
+			List<Investment> PortFolios = new List<Investment>();
+			ComponentFactory.GetInvestHelperObj().GetFolioInvestments(portfolioId, PortFolios,DateTime.UtcNow.Year);
 			return PortFolios.Where(x => x.qty > 0).ToArray();
 		}
 		[HttpGet("SectorWiseAssetDistribution/{portfolioId}")]
 		public ActionResult<IEnumerable<SectorAssetDistribution>> SectorWiseAssetDistribution(int portfolioId)
-		{
-			//List<SectorAssetDistribution> PortFolios = new List<SectorAssetDistribution>();
-			return ComponentFactory.GetPortfolioObject().SectorWiseAssetDistribution(portfolioId).ToArray();
-			//return PortFolios.Where(x => x.qty > 0).ToArray();
+		{	 
+			return ComponentFactory.GetPortfolioObject().SectorWiseAssetDistribution(portfolioId).ToArray(); 
 		}
 
 		/// <summary>
@@ -74,9 +72,9 @@ namespace myfinAPI.Controller
 		//	}
 		//	return dividend;
 		//}
-		public double getLivePrice(portfolio n)
+		public decimal getLivePrice(Investment n)
 		{
-			Task<double> task = new Task<double>(() =>
+			Task<decimal> task = new Task<decimal>(() =>
 			{
 				return ComponentFactory.GetWebScrapperObject().GetLivePriceAsync(n);
 			});
@@ -135,13 +133,13 @@ namespace myfinAPI.Controller
 			return ComponentFactory.GetPortfolioObject().GetYearWiseAssetReturn((AssetType)assetId).ToArray();
 		}
 		[HttpPost("AddComment")]
-		public ActionResult<bool> ReplaceComment(portfolio p)
+		public ActionResult<bool> ReplaceComment(Investment p)
 		{
 			return ComponentFactory.GetPortfolioObject().ReplaceComment(p.folioID,p.Comment);
 			//return true;
 		}
 		[HttpGet("GetfolioComment/{folioid}")]
-		public ActionResult<portfolio> GetComment(int folioid)
+		public ActionResult<Investment> GetComment(int folioid)
 		{
 			return ComponentFactory.GetPortfolioObject().GetFolioComment(folioid);
 		}

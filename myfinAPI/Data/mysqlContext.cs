@@ -70,18 +70,18 @@ namespace myfinAPI.Data
 					{
 						tranList.Add(new EquityTransaction()
 						{							
-							qty = Convert.ToDouble(reader["qty"]),
+							qty = Convert.ToDecimal(reader["qty"]),
 							tranType = (TranType)Convert.ToInt16(reader["action"]),
-							price = Convert.ToDouble(reader["price"]),
+							price = Convert.ToDecimal(reader["price"]),
 							equity = new EquityBase()
 							{
 								equityName = reader["name"].ToString(),
 								assetId = reader["ISIN"].ToString(),
-								livePrice = Convert.ToDouble(reader["liveprice"]),
+								livePrice = Convert.ToDecimal(reader["liveprice"]),
 								symbol = reader["symbol"].ToString(),
 								sector = reader["sector"].ToString(),
-								PB = reader["pb"] == null ? 0 : Convert.ToDouble(reader["pb"]),
-								MarketCap = reader["marketcap"] == null ? 0 : Convert.ToDouble(reader["marketcap"]),
+								PB = reader["pb"] == null ? 0 : Convert.ToDecimal(reader["pb"]),
+								MarketCap = reader["marketcap"] == null ? 0 : Convert.ToDecimal(reader["marketcap"]),
 								assetType=(AssetType)reader["assettypeid"],
 							},							
 							//assetTypeId = (AssetType)reader["assettypeid"],							
@@ -93,9 +93,9 @@ namespace myfinAPI.Data
 			}
 		}
 
-		public IList<portfolio> GetUserfolio()
+		public IList<Investment> GetUserfolio()
 		{
-			IList<portfolio> folioList = new List<portfolio>();
+			IList<Investment> folioList = new List<Investment>();
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
@@ -104,7 +104,7 @@ namespace myfinAPI.Data
 
 				while (reader.Read())
 				{
-					folioList.Add(new portfolio()
+					folioList.Add(new Investment()
 					{
 						folioName = reader["folioname"].ToString(),
 						folioID = (int)reader["portfolioid"]
@@ -146,10 +146,10 @@ namespace myfinAPI.Data
 								portfolioId = Convert.ToInt32(reader["portfolioId"]),
 								tranDate = Convert.ToDateTime(reader["transactiondate"]),
 								qty = Convert.ToInt32(reader["qty"]),
-								price = Convert.ToDouble(reader["price"]),
+								price = Convert.ToDecimal(reader["price"]),
 								tranType = (TranType)Convert.ToInt16(reader["action"]),
-								PB_Tran = Convert.ToDouble(reader["pb"]),
-								MarketCap_Tran = Convert.ToDouble(reader["marketcap"]),
+								PB_Tran = Convert.ToDecimal(reader["pb"]),
+								MarketCap_Tran = Convert.ToDecimal(reader["marketcap"]),
 								equity = new EquityBase()
 								{
 									//PB = Convert.ToDouble(reader["pb"]),
@@ -215,10 +215,10 @@ namespace myfinAPI.Data
 								portfolioId = Convert.ToInt32(reader["portfolioId"]),
 								tranDate = Convert.ToDateTime(reader["transactiondate"]),
 								qty = Convert.ToInt32(reader["qty"]),
-								price = Convert.ToDouble(reader["price"]),
-								PB_Tran = Convert.ToDouble(reader["pb_tran"]),
+								price = Convert.ToDecimal(reader["price"]),
+								PB_Tran = Convert.ToDecimal(reader["pb_tran"]),
 								tranType = (TranType) Convert.ToInt16(reader["action"]),
-								MarketCap_Tran = Convert.ToDouble(reader["mc_Tran"]),								
+								MarketCap_Tran = Convert.ToDecimal(reader["mc_Tran"]),								
 								id= Convert.ToInt32(reader["transactionid"].ToString()),
 								tranId= id,
 								equity = new EquityBase()
@@ -285,11 +285,11 @@ namespace myfinAPI.Data
 								portfolioId = portfolioId,
 								tranDate = new DateTime( Convert.ToInt32(reader["tran"]),1,1),
 								qty = Convert.ToInt32(reader["qty"]),
-								MarketCap_Tran= Convert.ToDouble(reader["marketcap"]),
+								MarketCap_Tran= Convert.ToDecimal(reader["marketcap"]),
 								//price = Convert.ToDouble(reader["price"]),
 								//MarketCap = Convert.ToDouble(reader["marketcap"]),
 								tranType = (TranType) Convert.ToInt32(reader["action"]),
-								PB_Tran = Convert.ToDouble(reader["pb"]),
+								PB_Tran = Convert.ToDecimal(reader["pb"]),
 								equity = new EquityBase()
 								{
 									//PB = Convert.ToDouble(reader["pb"]),
@@ -334,21 +334,24 @@ namespace myfinAPI.Data
 					using (var reader = command.ExecuteReader())
 					{
 						
-						Int64 qty = 0;
-						double ownership=0;
+						decimal qty = 0;
+						decimal ownership=0;
 						while (reader.Read())
 						{
-							var totalShr = reader["openshare"];
-							totalShr=totalShr.ToString().Replace("{}", "0");
-							if (totalShr== null || totalShr.ToString()==string.Empty)
-								totalShr = (ulong)0;
-							else
-								totalShr = Convert.ToUInt64(reader["openshare"]);
+							object openShares = reader["openshare"] is DBNull ? 0m : (long)reader["openshare"];
+							decimal totalShr;
+							bool? verf = Convert.IsDBNull(reader["verified"])? false: Convert.ToBoolean(reader["verified"]);
+							//totalShr =totalShr.ToString().Replace("{}", "0");
+							totalShr = Convert.ToDecimal(openShares);
+							 
 								
-							qty += Convert.ToInt64(reader["qty"]);
-							
-							if (Convert.ToUInt64(totalShr) > 0)
-								ownership = (ulong)qty / (ulong)totalShr;
+							qty += Convert.ToInt32(reader["qty"]);
+
+							if (totalShr > 0m)
+							{
+								ownership = (decimal)qty/totalShr;
+								decimal round=Math.Round(ownership, 8);
+							}
 
 							transactionList.Add(new EquityTransaction()
 							{
@@ -356,20 +359,18 @@ namespace myfinAPI.Data
 								portfolioId = Convert.ToInt32(reader["portfolioId"]),
 								tranDate = Convert.ToDateTime(reader["transactiondate"]),
 								qty = Convert.ToInt32(reader["qty"]),
-								price = Convert.ToDouble(reader["price"]),
-								MarketCap_Tran = Convert.ToDouble(reader["marketcap"]),								
+								price = Convert.ToDecimal(reader["price"]),
+								MarketCap_Tran = Convert.ToDecimal(reader["marketcap"]),								
 								tranType = (TranType)Convert.ToInt32(reader["action"]),
-								PB_Tran = Convert.ToDouble(reader["pb"]),								
+								PB_Tran = Convert.ToDecimal(reader["pb"]),								
 								tranId = Guid.Parse(reader["tranId"].ToString()),
-								ownership = ownership,
-								verified = Convert.ToBoolean(reader["verified"]),
+								freefloat_tran = totalShr,
+								 Ownership=ownership,
+								verified = verf,
 								equity = new EquityBase()
-								{
-									//PB = Convert.ToDouble(reader["pb"]),
-									//equityName = reader["name"].ToString(),
-									//MarketCap = Convert.ToDouble(reader["marketcap"]),
+								{								
 									assetId = reader["isin"].ToString(),
-									freefloat = (ulong)totalShr
+									freefloat = totalShr
 								}
 							});
 						}
@@ -463,9 +464,9 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"REPLACE INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate,PB,marketcap,tranid) 
+				using var command = new MySqlCommand(@"REPLACE INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate,PB,marketcap,tranid,openshare) 
 												VALUES ( " + tran.price + ",'" + (int)tran.tranType + "','" + tran.equity.assetId + "'," + tran.qty + "," + tran.portfolioId + ",'" 
-													+ dt + "',"+tran.equity.PB + ","+tran.equity.MarketCap + ",'"+ Guid.NewGuid() +"');", _conn);
+													+ dt + "',"+tran.equity.PB + ","+tran.equity.MarketCap + ",'"+ Guid.NewGuid() +"',"+tran.freefloat_tran+");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
 			return true;
@@ -557,10 +558,10 @@ namespace myfinAPI.Data
 					acct.Add(new PFAccount()
 					{
 						Year = Convert.ToInt32(Convert.ToDateTime(reader["dtofchange"]).Year),
-						InvestmentEmp = Convert.ToDouble(reader["emp"]),
+						InvestmentEmp = Convert.ToDecimal(reader["emp"]),
 						TypeOfTransaction = Enum.Parse<TranType>( reader["typeofcredit"].ToString()),
-						InvestmentEmplr = Convert.ToDouble(reader["employer"]),
-						Pension = Convert.ToDouble(reader["pension"]),
+						InvestmentEmplr = Convert.ToDecimal(reader["employer"]),
+						Pension = Convert.ToDecimal(reader["pension"]),
 						DateOfTransaction = Convert.ToDateTime(reader["dtofchange"]),
 						Folioid = Convert.ToInt32(reader["folioid"]),
 					});
@@ -591,10 +592,10 @@ namespace myfinAPI.Data
 					hstry.Add(new PFAccount()
 					{
 					 	Year = Convert.ToInt32(reader["year"]),						 
-						InvestmentEmp  = Convert.ToDouble(reader["emp"]),
+						InvestmentEmp  = Convert.ToDecimal(reader["emp"]),
 						TypeOfTransaction = Enum.Parse<TranType>(reader["typeofcredit"].ToString()),
-						InvestmentEmplr = Convert.ToDouble(reader["employer"]),
-						Pension= Convert.ToDouble(reader["pension"]),
+						InvestmentEmplr = Convert.ToDecimal(reader["employer"]),
+						Pension= Convert.ToDecimal(reader["pension"]),
 						DateOfTransaction = Convert.ToDateTime(reader["dtofchange"])
 					});
 				}
@@ -717,24 +718,47 @@ namespace myfinAPI.Data
 			}
 			//return assetTypeList;
 		}
-		public IList<ShareInfo> SearchShare(string name)
+
+		public EquityBase GetAssetDetail(string equityID)
 		{
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				IList<ShareInfo> _eqs = new List<ShareInfo>();
+				EquityBase _eqs = new EquityBase();
+				using var command = new MySqlCommand(@"select * from myfin.equitydetails where ISIN like '" + equityID + "%';", _conn);
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					_eqs.equityName = reader["Name"].ToString();
+					_eqs.assetId = reader["isin"].ToString();
+					_eqs.sourceurl = reader["description"].ToString();
+					_eqs.divUrl = reader["divlink"].ToString();
+					_eqs.sector = reader["sector"].ToString();
+					_eqs.symbol = reader["Symbol"].ToString();
+					var frFloat =  reader["totalshare"] is DBNull ? "0" : reader["totalshare"].ToString();
+					_eqs.freefloat = Convert.ToDecimal( frFloat);
+				}
+				return _eqs;
+			}
+		}
+		public IList<EquityBase> SearchShare(string name)
+		{
+			using (MySqlConnection _conn = new MySqlConnection(connString))
+			{
+				_conn.Open();
+				IList<EquityBase> _eqs = new List<EquityBase>();
 				using var command = new MySqlCommand(@"select * from myfin.equitydetails where name like '" + name + "%';", _conn);
 				using var reader = command.ExecuteReader();
 				while (reader.Read())
 				{
-					_eqs.Add(new ShareInfo()
+					_eqs.Add(new EquityBase()
 					{
-						fullName  = reader["Name"].ToString(),
-						id = reader["isin"].ToString(),
-						desc = reader["description"].ToString(),
-						divlink = reader["divlink"].ToString(),
+						equityName  = reader["Name"].ToString(),
+						assetId= reader["isin"].ToString(),
+						sourceurl = reader["description"].ToString(),
+						divUrl = reader["divlink"].ToString(),
 						sector= reader["sector"].ToString(),
-						shortName= reader["Symbol"].ToString()
+						symbol= reader["Symbol"].ToString()
 					});
 				}
 				return _eqs;
@@ -789,7 +813,7 @@ namespace myfinAPI.Data
 					{
 						dt = new DateTime(Convert.ToInt32(reader["year"]), Convert.ToInt32(reader["month"]), 1),
 						//companyid = reader["isin"].ToString(),
-						divValue = Convert.ToDouble(reader["dividend"])
+						divValue = Convert.ToDecimal(reader["dividend"])
 					});
 				}
 				
@@ -810,7 +834,7 @@ namespace myfinAPI.Data
 					{
 						dt = new DateTime(Convert.ToInt32(reader["yr"]),1,1),						
 						//eqt = new EquityBase { assetId = reader["isin"].ToString() },
-						divValue = Convert.ToDouble(reader["dividend"])
+						divValue = Convert.ToDecimal(reader["dividend"])
 					});
 				}
 				//return _eqs;
@@ -838,7 +862,7 @@ namespace myfinAPI.Data
 				{
 					d.Add(new dividend()
 					{
-						divValue = Convert.ToDouble(reader["dividend"]),						
+						divValue = Convert.ToDecimal(reader["dividend"]),						
 						dt = new DateTime(Convert.ToInt32(reader["year"]),1,1)
 					});
 				}
@@ -859,8 +883,8 @@ namespace myfinAPI.Data
 				{
 					d.Add(new dividend()
 					{
-						divValue = Convert.ToDouble(reader["dividend"]),
-						//eqt = new EquityBase { assetId = reader["isin"].ToString() },
+						divValue = Convert.ToDecimal(reader["dividend"]),
+						creditType = (TranType)Convert.ToInt16(reader["typeOfcredit"]),
 						dt = Convert.ToDateTime(reader["dtupdated"])
 					});
 				}
@@ -917,7 +941,7 @@ namespace myfinAPI.Data
 						div.Add(new dividend()
 						{
 							dt = new DateTime(Convert.ToInt32(reader["year"]), Convert.ToInt32(reader["month"]), 1),
-							divValue = Convert.ToDouble(reader["dividend"])
+							divValue = Convert.ToDecimal(reader["dividend"])
 						});
 					}										
 				}
@@ -948,7 +972,7 @@ namespace myfinAPI.Data
 					div.Add(new dividend()
 					{
 						dt = new DateTime(Convert.ToInt32(reader["year"]), Convert.ToInt32(reader["month"]), 1),
-						divValue = Convert.ToDouble(reader["dividend"])
+						divValue = Convert.ToDecimal(reader["dividend"])
 					});
 
 				}
@@ -972,7 +996,7 @@ namespace myfinAPI.Data
 					{
 						if (Convert.ToDateTime(dt).Date == DateTime.Today)
 						{
-							_eq.livePrice = Convert.ToDouble(reader["liveprice"]);							
+							_eq.livePrice = Convert.ToDecimal(reader["liveprice"]);							
 						}
 						//else
 						//	_eq.tranType = (TranType)reader["description"];
@@ -1423,7 +1447,7 @@ namespace myfinAPI.Data
 					{
 						cashFlow.Add(new CashFlow()
 						{
-							Cashflow = Convert.ToDouble(reader["Amt"]),
+							Cashflow = Convert.ToDecimal(reader["Amt"]),
 							Dividend =0,
 							year = Convert.ToDateTime(reader["dtoftransaction"]).Year,
 							month = Convert.ToDateTime(reader["dtoftransaction"]).Month
@@ -1463,7 +1487,7 @@ namespace myfinAPI.Data
 							equity= new EquityBase() { assetType=type},
 							//tranType = (TranType)reader["description"],
 													
-							price = Convert.ToDouble(reader["Amt"]),
+							price = Convert.ToDecimal(reader["Amt"]),
 							tranDate = Convert.ToDateTime(reader["dtoftransaction"]),
 							tranType = (TranType)reader["typeoftransaction"]
 						});

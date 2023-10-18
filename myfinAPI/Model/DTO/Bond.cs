@@ -9,18 +9,18 @@ namespace myfinAPI.Model.DTO
 	public class Bond
 	{
 		public DateTime updateDate { get; set; }
-		public double couponRate { get; set; }
+		public decimal couponRate { get; set; }
 		public string BondName { get; set; }
 		public string BondId { get; set; }
-		public double minInvst { get; set; }
+		public decimal minInvst { get; set; }
 		public DateTime dateOfMaturity { get; set; }
 		public DateTime firstIPDate { get; set; }
-		public double LivePrice { get; set; }
+		public decimal LivePrice { get; set; }
 		/// <summary>
 		/// Yield to maturity
 		/// </summary>
 		public double YTM { get; set; }
-		public double faceValue { get; set; }
+		public decimal faceValue { get; set; }
 		public string BondLink { get; set; }
 		public string intrestCycle { get; set; }
 		public string rating { get; set; }
@@ -31,16 +31,16 @@ namespace myfinAPI.Model.DTO
 	{
 		public Bond BondDetail { get; set; }
 		//public string BondName { get; set; }
-		public double InvstPrice { get; set; }
-		public double Qty { get; set; }
+		public decimal InvstPrice { get; set; }
+		public decimal Qty { get; set; }
 		public int folioId { get; set; }
 		public DateTime purchaseDate { get; set; }
 		public TranType TranType { get; set; }
-		public double AccuredIntrest { get; set; }
+		public decimal AccuredIntrest { get; set; }
 	}
 	public class BondIntrest
 	{ 
-		public double amt { get; set; }
+		public decimal amt { get; set; }
 		public DateTime intrestPaymentDate { get; set; }
 		public TranType TranType { get; set; }
 		public Bond BondDetail { get; set; }
@@ -50,14 +50,14 @@ namespace myfinAPI.Model.DTO
 	{
 		public Bond BondDetail { get; set; }
 		public int folioId { get; set; }
-		public double Investment { get; set; }
+		public decimal Investment { get; set; }
 	}
 	public class BondIntrestYearly
 	{
 		public int Year { get; set; }
 		public int folioId { get; set; }
-		public double Intrest { get; set; }
-		public double month { get; set; }
+		public decimal Intrest { get; set; }
+		public int month { get; set; }
 
 	}
 

@@ -21,7 +21,7 @@ namespace myfinAPI.Data
 			_driver.Quit();
 		}
 
-		public double GetLivePriceAsync(portfolio folio)
+		public decimal GetLivePriceAsync(Investment folio)
 		{
 			
 			if (folio.eq.symbol == null)

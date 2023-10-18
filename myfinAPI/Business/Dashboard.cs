@@ -112,11 +112,11 @@ namespace myfinAPI.Business
 					//AddDividend(asset.Id, );
 					tranDetails.Add(new CashItem()
 					{
-						Amount = 1 * asset.CurrentValue,
+						Amount = 1 * Convert.ToDouble(asset.CurrentValue),
 						Date = new DateTime(DateTime.Now.Year, 12, 25)
 					});
 					xirrReturn = Xirr.RunScenario(tranDetails) * 100;
-					asset.XirrReturn = xirrReturn;
+					asset.XirrReturn =Convert.ToDecimal(xirrReturn);
 				}
 			}
 			return dashBoard;
@@ -128,7 +128,7 @@ namespace myfinAPI.Business
 			{
 				tranDetails.Add(new CashItem()
 				{
-					Amount =Math.Round(eqtT.price * eqtT.qty*(eqtT.tranType==TranType.Buy?-1:1)),
+					Amount =Convert.ToDouble(Math.Round(eqtT.price * eqtT.qty*(eqtT.tranType==TranType.Buy?-1:1))),
 					Date= new DateTime(eqtT.tranDate.Year, eqtT.tranDate.Month, eqtT.tranDate.Day)  
 				}) ;				
 			}

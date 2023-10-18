@@ -101,6 +101,13 @@ namespace myfinAPI.Controller
 			ComponentFactory.GetBondhelperObj().GetBondTransaction(folioId, tran);
 			return tran.ToArray();
 		}
+		[HttpPost("UploadTransactionFile/{folioId}")]
+		public ActionResult<bool> UploadTranFile(int folioId, Microsoft.AspNetCore.Http.IFormFile file)
+		{
+			IList<EquityTransaction> tran = new List<EquityTransaction>();
+			ComponentFactory.GetTranObject().UploadTranFile(file, folioId);
+			return true;
+		}
 	}
 }
 

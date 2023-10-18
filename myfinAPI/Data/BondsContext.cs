@@ -50,16 +50,16 @@ namespace myfinAPI.Data
 								{
 									BondId = reader["bondid"].ToString(),
 									BondName = reader["bondName"].ToString(),
-									faceValue = (double)reader["facevalue"],
-									couponRate = (double)reader["Couponrate"],
+									faceValue = Convert.ToDecimal(reader["facevalue"]),
+									couponRate = Convert.ToDecimal(reader["Couponrate"]),
 									dateOfMaturity = Convert.ToDateTime(reader["dom"]),
-									LivePrice = Convert.ToDouble(LivPric==string.Empty?0: reader["currentprice"]),
+									LivePrice = Convert.ToDecimal(LivPric==string.Empty?0: reader["currentprice"]),
 									intrestCycle = reader["Intrestcycle"].ToString()
 								},
 								folioId = Convert.ToInt32(reader["folioId"]),
 								purchaseDate = Convert.ToDateTime(reader["dateofpurchase"]),
-								Qty = Convert.ToDouble(reader["qty"]),
-								InvstPrice = Convert.ToDouble(reader["price"]),
+								Qty = Convert.ToDecimal(reader["qty"]),
+								InvstPrice = Convert.ToDecimal(reader["price"]),
 								TranType = (TranType)reader["tranType"],
 								//AccuredIntrest = Convert.ToDouble(reader["AccurdIntrest"])
 							});
@@ -92,12 +92,12 @@ namespace myfinAPI.Data
 								bondDetails.Add(new Bond()
 								{
 									BondId = reader["bondId"].ToString(),
-									couponRate = Convert.ToDouble(reader["couponRate"] == null ? 0 : reader["couponRate"]),
+									couponRate = Convert.ToDecimal(reader["couponRate"] == null ? 0 : reader["couponRate"]),
 									dateOfMaturity = Convert.ToDateTime(reader["DOM"]),
 									YTM = Convert.ToInt32(reader["ytm"] == null ? 0 : reader["ytm"]),
-									LivePrice = Convert.ToDouble(reader["currentPrice"] == null ? 0 : reader["currentPrice"]),
+									LivePrice = Convert.ToDecimal(reader["currentPrice"] == null ? 0 : reader["currentPrice"]),
 									BondName = (reader["bondName"]==null?"": reader["bondName"]).ToString(),
-									faceValue = Convert.ToDouble(reader["facevalue"] == null ? 0 : reader["facevalue"]),
+									faceValue = Convert.ToDecimal(reader["facevalue"] == null ? 0 : reader["facevalue"]),
 									intrestCycle = (reader["intrestCycle"] == null ? "Y" : reader["intrestCycle"]).ToString(),
 									updateDate = Convert.ToDateTime(reader["Updatedon"]==null? new DateTime(1001,1,1): reader["Updatedon"])
 
@@ -138,12 +138,12 @@ namespace myfinAPI.Data
 							{
 								bondDetail = new Bond();
 								bondDetail.BondId = reader["bondId"].ToString();
-								bondDetail.couponRate = Convert.ToDouble(reader["couponRate"] == null ? 0 : reader["couponRate"]);
+								bondDetail.couponRate = Convert.ToDecimal(reader["couponRate"] == null ? 0 : reader["couponRate"]);
 								bondDetail.dateOfMaturity = Convert.ToDateTime(reader["DOM"]);
 								//bondDetail.YTM = Convert.ToInt32(reader["ytm"] == null ? 0 : reader["ytm"]);
-								bondDetail.LivePrice = Convert.ToDouble(reader["currentPrice"] == null ? 0 : reader["currentPrice"]);
+								bondDetail.LivePrice = Convert.ToDecimal(reader["currentPrice"] == null ? 0 : reader["currentPrice"]);
 								bondDetail.BondName = (reader["bondName"] == null ? "" : reader["bondName"]).ToString();
-								bondDetail.faceValue = Convert.ToDouble(reader["facevalue"] == null ? 0 : reader["facevalue"]);
+								bondDetail.faceValue = Convert.ToDecimal(reader["facevalue"] == null ? 0 : reader["facevalue"]);
 								bondDetail.intrestCycle = (reader["intrestCycle"] == null ? "Y" : reader["intrestCycle"]).ToString();
 								bondDetail.updateDate = Convert.ToDateTime(reader["Updatedon"] == null ? new DateTime(1001, 1, 1) : reader["Updatedon"]);
 								bList.Add(bondDetail);

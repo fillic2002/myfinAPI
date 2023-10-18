@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using myfinAPI.Factory;
 using myfinAPI.Model;
 using myfinAPI.Model.Domain;
@@ -12,11 +13,11 @@ namespace myfinAPI.Business
 {
 	public class Transaction
 	{
-		private Dictionary<int, double> yearlyIntrestOnBonds;
+		private Dictionary<int, decimal> yearlyIntrestOnBonds;
 		 
 		public IList<AssetHistory> GetYearlyInvestment(int folioid)
 		{
-			yearlyIntrestOnBonds = new Dictionary<int, double>();
+			yearlyIntrestOnBonds = new Dictionary<int, decimal>();
 			IList<AssetHistory> result = new List<AssetHistory>();
 			IList<EquityTransaction> transactions = new List<EquityTransaction>();
 			ComponentFactory.GetMySqlObject().GetAllTransaction(folioid, transactions);
@@ -121,10 +122,10 @@ namespace myfinAPI.Business
 		private void GetHistoricAssetValue(IEnumerable<EquityTransaction> eqtTranList,
 			AssetType assetType, int year, IList<AssetHistory> result,int folioId)
 		{
-			double pAstValue = 0;
-			double cAstValue = 0;
-			double cInvstValue = 0;
-			double pInvstValue = 0;
+			decimal pAstValue = 0;
+			decimal cAstValue = 0;
+			decimal cInvstValue = 0;
+			decimal pInvstValue = 0;
 			IList<dividend> div = new List<dividend>();
 
 			AssetHistory yearlyHistory = new AssetHistory();
@@ -136,13 +137,22 @@ namespace myfinAPI.Business
 			IList<AssetHistory> previousYearSnapshots = currentYearSnapshots;
 			if (year== DateTime.Now.Year)
 			{
-				//yearlyHistory.profitCurrentyear = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue - previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).AssetValue;
-				cAstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue+
+				if(currentYearSnapshots !=null && currentYearSnapshots.Count>0 && previousYearSnapshots.Count>0)
+				{
+					cAstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue +
 					currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Dividend;
-				pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month ==12).AssetValue+ 
-					previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;
-				cInvstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Investment;
-				pInvstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month == 12).Investment;				
+					pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).AssetValue +
+										previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;
+					cInvstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Investment;
+					pInvstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Investment;
+
+				}
+				//cAstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).AssetValue+
+				//	currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Dividend;
+			//	pAstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month ==12).AssetValue+ 
+			//		previousYearSnapshots.First<AssetHistory>(x => x.year == year - 1 && x.month == 12).Dividend;
+			//	cInvstValue = currentYearSnapshots.First<AssetHistory>(x => x.year == year && x.month == DateTime.Now.Month).Investment;
+			//	pInvstValue = previousYearSnapshots.First<AssetHistory>(x => x.year == year-1 && x.month == 12).Investment;				
 			}
 			else
 			{
@@ -163,7 +173,7 @@ namespace myfinAPI.Business
 			yearlyHistory.Investment = cInvstValue - pInvstValue;
 			yearlyHistory.AssetValue= cAstValue- pAstValue;
 			yearlyHistory.portfolioId = folioId;
-			double netDiv = 0;
+			decimal netDiv = 0;
 			var element = div.ToList().Find(x => x.dt.Year == year);
 			if (element != null)
 			{
@@ -193,6 +203,10 @@ namespace myfinAPI.Business
 			IList <EquityTransaction> tranDetails = new List<EquityTransaction>();
 			ComponentFactory.GetMySqlObject().GetTransaction(folioId, EqtId, tranDetails);
 			return tranDetails;
+		}
+		public void UploadTranFile(IFormFile file, int folioId)
+		{
+			Console.WriteLine(file);
 		}
 
 		//public void GetAllTransaction(int folioId, IList<EquityTransaction> tranDetails)

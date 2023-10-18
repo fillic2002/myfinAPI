@@ -105,7 +105,7 @@ namespace myfinAPI.Business
 
             var startDate = cashFlow.OrderBy(i => i.Date).First().Date;
             return
-                (from item in cashFlow
+				(from item in cashFlow
                  let days = -(item.Date - startDate).Days
                  select item.Amount * Math.Pow(1 + rate, days / DaysPerYear)).Sum();
         }

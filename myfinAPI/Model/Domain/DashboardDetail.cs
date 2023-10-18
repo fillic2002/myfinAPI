@@ -10,9 +10,9 @@ namespace myfinAPI.Model
 	{
 		public AssetType Id { get; set; }
 		public string AssetName { get; set; }
-		public double Invested { get; set; }
-		public double CurrentValue { get; set; }
-		public double XirrReturn { get; set; }
+		public decimal Invested { get; set; }
+		public decimal CurrentValue { get; set; }
+		public decimal XirrReturn { get; set; }
 
 	}
 }

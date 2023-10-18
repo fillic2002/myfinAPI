@@ -107,13 +107,13 @@ namespace myfinAPI.Business
 				invstYear.Add(new CashItem()
 				{
 					Date = b.dateOfMaturity,
-					Amount = b.faceValue
+					Amount = Convert.ToDouble(b.faceValue)
 				});
 				//Current paid price based on live price
 				invstYear.Add(new CashItem()
 				{
 					Date = DateTime.Now,
-					Amount = -b.LivePrice
+					Amount = -Convert.ToDouble(b.LivePrice)
 				});
 				//intrest payment pending until maturity in case any
 				intrestPayDate = GetIntrestPeriod(intrestPayDate, b);
@@ -123,7 +123,7 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = intrestPayDate,
-						Amount = (b.faceValue * b.couponRate) / 100
+						Amount = Convert.ToDouble(b.faceValue * b.couponRate) / 100
 					});
 					intrestPayDate = GetIntrestPeriod(intrestPayDate, b);
 				}
@@ -137,7 +137,7 @@ namespace myfinAPI.Business
 				Console.ResetColor();
 			}
 		}
-		public void GetYearWiseIntrest(Dictionary<int,double> yearWiseIntrest, int folioId)
+		public void GetYearWiseIntrest(Dictionary<int, decimal> yearWiseIntrest, int folioId)
 		{
 			IList<AssetHistory> assetSnapshot = new List<AssetHistory>();
 			ComponentFactory.GetSnapshotObj().GetMonthlyAssetSnapshot(0,AssetType.Bonds, assetSnapshot);
@@ -248,7 +248,7 @@ namespace myfinAPI.Business
 					IList<BondIntrest> bondIntrest = new List<BondIntrest>();
 					ComponentFactory.GetBondhelperObj().
 						getyYearlyIntrest(tran, new DateTime(year, 12, 31), bondIntrest);
-					double amt = bondIntrest.Where(x => x.intrestPaymentDate.Year == year).Sum(y => y.amt);
+					decimal amt = bondIntrest.Where(x => x.intrestPaymentDate.Year == year).Sum(y => y.amt);
 					IEnumerable<BondIntrestYearly> yearInts = bondIntrestYearly.Where(x => x.Year == year);
 					if (yearInts.Count() > 0)
 					{
@@ -436,10 +436,10 @@ namespace myfinAPI.Business
 		public void GetBondReturns(int folioid, IList<AssetReturn> astReturn)
 		{
 			IList<BondTransaction> eqtTran = new List<BondTransaction>();
-			Dictionary<int, double> yearWiseReturn = new Dictionary<int, double>();
+			Dictionary<int, decimal> yearWiseReturn = new Dictionary<int, decimal>();
 			ComponentFactory.GetBondhelperObj().GetYearWiseIntrest(yearWiseReturn, folioid);
 			 
-			foreach (int key in ((Dictionary<int, double>)yearWiseReturn).Keys)
+			foreach (int key in ((Dictionary<int, decimal>)yearWiseReturn).Keys)
 			{			 
 				astReturn.Add(new AssetReturn()
 				{

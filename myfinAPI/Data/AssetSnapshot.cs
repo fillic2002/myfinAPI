@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using myfinAPI.Model;
+using myfinAPI.Model.Domain;
 using MySqlConnector;
 using static myfinAPI.Model.AssetClass;
 
@@ -43,9 +44,9 @@ namespace myfinAPI.Data
 						assetSnapshot.Add(new AssetHistory()
 						{
 						month = Convert.ToInt32(reader["month"]),
-						Dividend = Convert.ToDouble(reader["dividend"]),
-						Investment = Convert.ToDouble(reader["invstmt"]),
-						AssetValue = Convert.ToDouble(reader["assetvalue"]),
+						Dividend = Convert.ToDecimal(reader["dividend"]),
+						Investment = Convert.ToDecimal(reader["invstmt"]),
+						AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 						year = Convert.ToInt32(reader["year"]),
 						portfolioId = Convert.ToInt32(reader["portfolioid"] == null ? 0 : reader["portfolioid"]),
 						Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"]))
@@ -89,9 +90,9 @@ namespace myfinAPI.Data
 						assetSnapshot.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							Dividend = Convert.ToDouble(reader["dividend"]),
-							Investment = Convert.ToDouble(reader["invstmt"]),
-							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							Dividend = Convert.ToDecimal(reader["dividend"]),
+							Investment = Convert.ToDecimal(reader["invstmt"]),
+							AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
 							portfolioId = Convert.ToInt32(reader["portfolioid"] == null ? 0 : reader["portfolioid"]),
 							Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"]))
@@ -132,9 +133,9 @@ namespace myfinAPI.Data
 						astHistroy.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							Dividend = Convert.ToDouble(reader["dividend"]),
-							Investment = Convert.ToDouble(reader["invstmt"]),
-							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							Dividend = Convert.ToDecimal(reader["dividend"]),
+							Investment = Convert.ToDecimal(reader["invstmt"]),
+							AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
 							portfolioId = portfolioId,
 							Assettype = (AssetType)astType
@@ -173,9 +174,9 @@ namespace myfinAPI.Data
 						snapshots.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							Dividend = Convert.ToDouble(reader["dividend"]),
-							Investment = Convert.ToDouble(reader["invstmt"]),
-							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							Dividend = Convert.ToDecimal(reader["dividend"]),
+							Investment = Convert.ToDecimal(reader["invstmt"]),
+							AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
 							Assettype = (AssetType)Convert.ToInt32(reader["assettype"]),
 							portfolioId = folioId
@@ -252,9 +253,9 @@ namespace myfinAPI.Data
 						assetReturn.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							Dividend = Convert.ToDouble(reader["dividend"]),
-							Investment = Convert.ToDouble(reader["invstmt"]),
-							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							Dividend = Convert.ToDecimal(reader["dividend"]),
+							Investment = Convert.ToDecimal(reader["invstmt"]),
+							AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
 							portfolioId = Convert.ToInt32(reader["portfolioid"] == null ? 0 : reader["portfolioid"]),
 							Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"]))
@@ -313,9 +314,9 @@ namespace myfinAPI.Data
 						assetReturn.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							Dividend = Convert.ToDouble(reader["dividend"]),
-							Investment = Convert.ToDouble(reader["invstmt"]),
-							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							Dividend = Convert.ToDecimal(reader["dividend"]),
+							Investment = Convert.ToDecimal(reader["invstmt"]),
+							AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
 							Assettype = (AssetType)((reader["assettype"] == null) ? 0 : Convert.ToInt32(reader["assettype"])),
 							portfolioId=folioId
@@ -347,9 +348,9 @@ namespace myfinAPI.Data
 						snapshots.Add(new AssetHistory()
 						{
 							month = Convert.ToInt32(reader["month"]),
-							Dividend = Convert.ToDouble(reader["dividend"]),
-							Investment = Convert.ToDouble(reader["invstmt"]),
-							AssetValue = Convert.ToDouble(reader["assetvalue"]),
+							Dividend = Convert.ToDecimal(reader["dividend"]),
+							Investment = Convert.ToDecimal(reader["invstmt"]),
+							AssetValue = Convert.ToDecimal(reader["assetvalue"]),
 							year = Convert.ToInt32(reader["year"]),
 						}); ;
 					}
@@ -362,6 +363,56 @@ namespace myfinAPI.Data
 			}
 		}
 
+		public void GetSectorWiseSnapshot(IList<SectorAssetDistribution> snapshots, int folioId)
+		{
+			//IList<SectorAssetDistribution> snapshots = new List<SectorAssetDistribution>();
+			using (MySqlConnection _conn = new MySqlConnection(_connString))
+			{
+				_conn.Open();
+				MySqlCommand command = null;
+				if (folioId == 0)
+				{ 
+				command = new MySqlCommand(@"SELECT SUM(et.qty * et.price) AS tran, action, ed.sector, et.isin,
+						SUM( CASE WHEN action=1 THEN  et.qty * ed.liveprice
+								  WHEN action=2 THEN -et.qty*ed.liveprice	
+                                  WHEN action = 5 THEN et.qty*ed.liveprice ELSE et.qty*ed.liveprice END) AS current,
+							SUM(  CASE WHEN action = 1 THEN et.qty * et.price WHEN action = 2 THEN -et.qty * et.price
+			            WHEN action = 5 THEN et.qty * et.price  ELSE et.qty * et.price  END) AS NetInvest
+						FROM myfin.equitytransactions et JOIN myfin.equitydetails ed ON ed.isin = et.isin    
+						where ed.assettypeid=1	GROUP BY ed.sector;  ", _conn);
+				}
+				else
+				{
+					command = new MySqlCommand(@"SELECT SUM(et.qty * et.price) AS tran, action, ed.sector, et.isin,
+						SUM( CASE WHEN action=1 THEN  et.qty * ed.liveprice
+								  WHEN action=2 THEN -et.qty*ed.liveprice	
+                                  WHEN action = 5 THEN et.qty*ed.liveprice ELSE et.qty*ed.liveprice END) AS current,
+							SUM(  CASE WHEN action = 1 THEN et.qty * et.price WHEN action = 2 THEN -et.qty * et.price
+			            WHEN action = 5 THEN et.qty * et.price  ELSE et.qty * et.price  END) AS NetInvest
+						FROM myfin.equitytransactions et JOIN myfin.equitydetails ed ON ed.isin = et.isin    
+						where ed.assettypeid=1 AND et.portfolioId="+ folioId +"	GROUP BY ed.sector;  ", _conn);
+				}
+				using var reader = command.ExecuteReader();
+				try
+				{
+					while (reader.Read())
+					{
+						snapshots.Add(new SectorAssetDistribution()
+						{
+							SectorName = reader["sector"].ToString(),
+							CurrentValue = Convert.ToDecimal(reader["current"]),
+							Invested = Convert.ToDecimal(reader["NetInvest"]),							
+						});
+					}
+				}
+				catch (Exception ex)
+				{
+					string s = ex.StackTrace;
+				}
+				//return snapshots;
+			}
+
+		}
 
 	}
 }

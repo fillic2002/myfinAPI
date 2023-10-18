@@ -21,6 +21,13 @@ namespace myfinAPI.Factory
 		private static BondsContext _bondObj;
 		private static BondsHelper _bondhelper;
 		private static Equity _eqtyHelper;
+		private static InvestHelper _invstHelper;
+		public static InvestHelper GetInvestHelperObj()
+		{
+			if (_invstHelper == null)
+				_invstHelper = new InvestHelper();
+			return _invstHelper;
+		}
 		public static Equity GetEquityHelperObj()
 		{
 			if (_eqtyHelper == null)

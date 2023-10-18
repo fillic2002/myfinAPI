@@ -45,7 +45,7 @@ namespace myfinAPI.Controller
 		[HttpGet("GetMonthlyPFDetails/{folioid}/{typeofAct}/{year}")]
 		public ActionResult<IEnumerable<PFAccount>> GetMonthlyDividend(int folioid, int typeofAct, int Year)
 		{
-			return ComponentFactory.GetBankObject().GetMonthlyDividend(folioid, typeofAct, Year).ToArray();
+			return ComponentFactory.GetBankObject().GetMonthlyPFDetails(folioid, typeofAct, Year).ToArray();
 		}
 
 		[HttpGet("GetAccoutType")]

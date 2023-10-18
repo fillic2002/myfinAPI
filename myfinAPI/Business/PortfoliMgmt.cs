@@ -74,7 +74,7 @@ namespace myfinAPI.Business
 			IList<AssetHistory> asstHistory = new List<AssetHistory>();			 
  			IList<CashFlow> cashFlow = new List<CashFlow>();
 			IList<CashflowDTO> cashFlowMonths = new List<CashflowDTO>();
-			double lastMonthBankBalance,currentMonthBankBalance;
+			decimal lastMonthBankBalance,currentMonthBankBalance;
 			ComponentFactory.GetBankObject().GetSalaryAndRental(months, cashFlow);
 			IList<dividend> div = new List<dividend>();
 			ComponentFactory.GetBankObject().GetDividend(months, cashFlow);
@@ -95,7 +95,7 @@ namespace myfinAPI.Business
 					flow = new List<AssetClassFlow>()
 				};
 				IList<CashFlow> monthlyCashFlow = cashFlow.Where(x => x.month == DateTime.Now.AddMonths(-i).Month && x.year == DateTime.Now.AddMonths(-i).Year).ToList();
-				double inVstmnt = asstHistory.First(x => x.year == DateTime.Now.AddMonths(-i).Year && x.month == DateTime.Now.AddMonths(-i).Month).Investment -
+				decimal inVstmnt = asstHistory.First(x => x.year == DateTime.Now.AddMonths(-i).Year && x.month == DateTime.Now.AddMonths(-i).Month).Investment -
 					asstHistory.First(x => x.year == DateTime.Now.AddMonths(-i - 1).Year && x.month == DateTime.Now.AddMonths(-i - 1).Month).Investment;
 				
 				foreach (CashFlow cf in monthlyCashFlow)
@@ -112,7 +112,7 @@ namespace myfinAPI.Business
 
 			return cashFlowMonths;
 		}
-		private double GetCurrentMonthInvestMent(IList<AssetHistory> asstHistory,int month,int year,AssetType astType)
+		private decimal GetCurrentMonthInvestMent(IList<AssetHistory> asstHistory,int month,int year,AssetType astType)
 		{
 			DateTime t = new DateTime(year, month,1);
 			var s=asstHistory.Where(y=>y.Assettype == astType).ToList();
@@ -131,7 +131,7 @@ namespace myfinAPI.Business
 				int year = DateTime.Now.AddMonths(-i).Year;
 				int month = DateTime.Now.AddMonths(-i).Month;
 				var monthTran = tranDetails.Where(x => x.tranDate.Year == year && x.tranDate.Month == month);
-				double cashflow = 0;
+				decimal cashflow = 0;
 				foreach(EquityTransaction tran in monthTran)
 				{
 					if(tran.tranType==TranType.Deposit && tran.tranType!=TranType.Salary)
@@ -153,8 +153,8 @@ namespace myfinAPI.Business
 		{
 			IList<AssetHistory> asstHistory = ComponentFactory.GetSnapshotObj().GetYearlySnapShot(assetId,0);
 			IList<AssetReturn> astReturn = new List<AssetReturn>();
-			double startYrAsset = 0;
-			double startYrInvst = 0;
+			decimal startYrAsset = 0;
+			decimal startYrInvst = 0;
 			
 			foreach (AssetHistory asset in asstHistory)
 			{
@@ -190,7 +190,7 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = tran.tranDate,
-						Amount = (tran.qty * tran.price)
+						Amount = Convert.ToDouble(tran.qty * tran.price)
 					});
 					//AddIntrestIncaseAny();
 				}
@@ -199,7 +199,7 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = tran.tranDate,
-						Amount = -(tran.qty * tran.price)
+						Amount = -Convert.ToDouble(tran.qty * tran.price)
 					});
 				}
 			}
@@ -228,7 +228,7 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = tran.tranDate,
-						Amount = (tran.qty*tran.price)
+						Amount = Convert.ToDouble(tran.qty*tran.price)
 					});
 				}
 				else
@@ -236,7 +236,7 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = tran.tranDate,
-						Amount = -(tran.qty * tran.price)
+						Amount = -Convert.ToDouble(tran.qty * tran.price)
 					});
 				}
 			}
@@ -249,7 +249,7 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = d.dt,
-						Amount = -d.divValue
+						Amount = -Convert.ToDouble(d.divValue)
 					});
 				}
 			}
@@ -259,7 +259,7 @@ namespace myfinAPI.Business
 				invstYear.Add(new CashItem()
 				{
 					Date = new DateTime(astH.year,astH.month,1) ,
-					Amount = -astH.AssetValue
+					Amount = -Convert.ToDouble(astH.AssetValue)
 				});
 			}
 
@@ -306,7 +306,7 @@ namespace myfinAPI.Business
 			while (year <= DateTime.Now.Year)
 			{
 				IList<CashItem> invstYear = new List<CashItem>();
-				double netReturn = 0;
+				decimal netReturn = 0;
 				IList<EquityTransaction> yearTransaction = t.Where(x => x.tranDate.Year == year).ToList();
 				if (yearTransaction.Count == 0 && astReturn.Count == 0)
 				{
@@ -318,12 +318,12 @@ namespace myfinAPI.Business
 				{
 					if (eqtT.tranType == TranType.Buy)
 					{
-						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = eqtT.price * eqtT.qty });
+						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = Convert.ToDouble(eqtT.price * eqtT.qty) });
 						netReturn -= eqtT.price * eqtT.qty;
 					}
 					else
 					{
-						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = -eqtT.price * eqtT.qty });
+						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = -Convert.ToDouble(eqtT.price * eqtT.qty) });
 						netReturn += eqtT.price * eqtT.qty;
 					}
 				}
@@ -393,7 +393,7 @@ namespace myfinAPI.Business
 			while(year <= DateTime.Now.Year)
 			{
 				IList<CashItem> invstYear = new List<CashItem>();
-				double netReturn = 0;
+				decimal netReturn = 0;
 				IList<EquityTransaction> yearTransaction = t.Where(x => x.tranDate.Year == year).ToList();
 				if (yearTransaction.Count==0 && astReturn.Count==0)
 				{
@@ -405,12 +405,12 @@ namespace myfinAPI.Business
 				{
 					if (eqtT.tranType == TranType.Buy)
 					{
-						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = eqtT.price * eqtT.qty });
+						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = Convert.ToDouble(eqtT.price * eqtT.qty) });
 						netReturn -= eqtT.price * eqtT.qty;
 					}
 					else
 					{
-						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = -eqtT.price * eqtT.qty });
+						invstYear.Add(new CashItem() { Date = eqtT.tranDate, Amount = -Convert.ToDouble(eqtT.price*eqtT.qty) });
 						netReturn += eqtT.price * eqtT.qty;
 					}
 				}
@@ -421,18 +421,18 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 						{
 							Date = new DateTime(year, mo, 26),
-							Amount = -yearSnapshot[0].AssetValue							
+							Amount = -Convert.ToDouble(yearSnapshot[0].AssetValue)							
 						});
 					netReturn += yearSnapshot[0].AssetValue;
 					if (PreviousYearInvst.Amount>0)
 					{
 						invstYear.Add(PreviousYearInvst);
-						netReturn -= PreviousYearInvst.Amount;
+						netReturn -= Convert.ToDecimal(PreviousYearInvst.Amount);
 					}
 					PreviousYearInvst = new CashItem()
 					{
 						Date = new DateTime(year, 12, 31),
-						Amount = yearSnapshot[0].AssetValue
+						Amount = Convert.ToDouble(yearSnapshot[0].AssetValue)
 					};				 				
 				}
 				else
@@ -440,12 +440,12 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = new DateTime(yearSnapshot[0].year, yearSnapshot[0].month,1),
-						Amount = yearSnapshot[0].AssetValue
+						Amount = Convert.ToDouble(yearSnapshot[0].AssetValue)
 					});
 					invstYear.Add(new CashItem()
 					{
 						Date = new DateTime(yearSnapshot[1].year, yearSnapshot[1].month, 28),
-						Amount = -yearSnapshot[1].AssetValue
+						Amount = -Convert.ToDouble(yearSnapshot[1].AssetValue)
 					});
 				}
 
@@ -453,12 +453,12 @@ namespace myfinAPI.Business
 				{
 					invstYear.Add(new CashItem() {
 						Date = d.dt,
-						Amount =-d.divValue
+						Amount =-Convert.ToDouble(d.divValue)
 					});
 				}	
 
 				var astreturn = Xirr.RunScenario(invstYear);				
-				astReturn.Add(new AssetReturn() { Return=netReturn ,year=year,xirr=astreturn*100,PortfolioId=folioid,dividend=Math.Round(yearlyDivDetails.First(x=>x.dt.Year==year).divValue,2)});
+				astReturn.Add(new AssetReturn() { Return=netReturn ,year=year,xirr=Convert.ToDecimal(astreturn)*100,PortfolioId=folioid,dividend=Math.Round(yearlyDivDetails.First(x=>x.dt.Year==year).divValue,2)});
 				year++;
 			}		 		 
 			
@@ -467,9 +467,9 @@ namespace myfinAPI.Business
 		}
 		private void GetCashFlowForPortfolio(IList<AssetHistory> asstHstry, IList<CashFlow> cashFlow)
 		{
-			double netInvestAdded = 0, prevMonthInvst = 0, cumMonthlyAsst = 0, preMonthAsst = 0, preMonthlyAsstMF = 0, preMonthInvstMFD = 0;
-			double currentMonthCashflow = 0, preMonthDivCum = 0, preMonthInvstMF = 0, currentMonthCashflowMF = 0, currentMonthCashflowMFD = 0;
-			double preMonthlyAsstMFD = 0;
+			decimal netInvestAdded = 0, prevMonthInvst = 0, cumMonthlyAsst = 0, preMonthAsst = 0, preMonthlyAsstMF = 0, preMonthInvstMFD = 0;
+			decimal currentMonthCashflow = 0, preMonthDivCum = 0, preMonthInvstMF = 0, currentMonthCashflowMF = 0, currentMonthCashflowMFD = 0;
+			decimal preMonthlyAsstMFD = 0;
 
 			foreach (AssetHistory item in asstHstry)
 			{
@@ -541,9 +541,9 @@ namespace myfinAPI.Business
 		{		
 			return ComponentFactory.GetMySqlObject().ReplaceFolioComment(folioid, comment);			
 		}
-		public portfolio GetFolioComment(int folioid)
+		public Investment GetFolioComment(int folioid)
 		{
-			portfolio p = new portfolio()
+			Investment p = new Investment()
 			{
 				Comment = ComponentFactory.GetMySqlObject().GetFolioComment(folioid)
 			};
@@ -562,7 +562,7 @@ namespace myfinAPI.Business
 			return Exp;
 		}
 
-		private CompanySize GetCategory(double marketCap)
+		public CompanySize GetCategory(decimal marketCap)
 		{
 			var result = (marketCap < 5000) ? CompanySize.Small :
 			 (marketCap >= 5000 && marketCap < 20000) ? CompanySize.Mid :
@@ -578,7 +578,7 @@ namespace myfinAPI.Business
 			IList<EquityTransaction> tran = new List<EquityTransaction>();
 			List<Model.DTO.AssetClass> astClass = new List<Model.DTO.AssetClass>();
 			ComponentFactory.GetEquityHelperObj().GetAllTransaction(folioId, tran);
-			double totalInvst = 0;
+			decimal totalInvst = 0;
 
 			foreach (EquityTransaction item in tran.Where(x=>x.equity.assetType==AssetType.Shares))
 			{
@@ -590,7 +590,7 @@ namespace myfinAPI.Business
 				{
 					totalInvst += item.qty * item.price;
 					result.Investment += item.qty * item.price;
-					result.percent = (result.Investment / totalInvst) * 100;
+					result.percent =  (totalInvst==0)?0:(result.Investment / totalInvst) * 100;
 				}
 				else
 				{
@@ -618,26 +618,26 @@ namespace myfinAPI.Business
 			ComponentFactory.GetSnapshotObj().GetMonthlyAssetSnapshot(folioid, AssetType.Flat, astHistory);
 			ComponentFactory.GetSnapshotObj().GetMonthlyAssetSnapshot(folioid, AssetType.Plot, astHistory);
 
-			double prvMonthShrInv = 0;double prvMonthEqtMFInv = 0; double prvMonthDbtMFInv = 0;
-			double prvMonthPFInv = 0; double prvMonthPPFInv = 0; double prvMonthGoldInv = 0;
+			decimal prvMonthShrInv = 0; decimal prvMonthEqtMFInv = 0; decimal prvMonthDbtMFInv = 0;
+			decimal prvMonthPFInv = 0; decimal prvMonthPPFInv = 0; decimal prvMonthGoldInv = 0;
 
 			currentDt = currentDt.AddMonths(-12);
 
-			var curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Shares);
-			prvMonthShrInv = curMonh.ToList()[0].Investment;
+			AssetHistory curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Shares);
+			prvMonthShrInv = curMonh.Investment;
 			//SectorWiseInvestment(int folioid,DateTime currentDt);
+			
+			curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype ==AssetType.Equity_MF);
+			prvMonthEqtMFInv = curMonh is null? 0: curMonh.Investment;
 
-			curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype ==AssetType.Equity_MF);
-			prvMonthEqtMFInv = curMonh.ToList()[0].Investment;
+			curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Debt_MF);
+			prvMonthDbtMFInv = curMonh is null ? 0 : curMonh.Investment;
 
-			curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Debt_MF);
-			prvMonthDbtMFInv = curMonh.ToList()[0].Investment;
+			curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PF);
+			prvMonthPFInv = curMonh is null ? 0 : curMonh.Investment;
 
-			curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PF);
-			prvMonthPFInv = curMonh.ToList()[0].Investment;
-
-			curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PPF);
-			prvMonthPPFInv = curMonh.ToList()[0].Investment;
+			curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PPF);
+			prvMonthPPFInv = curMonh is null ? 0 : curMonh.Investment;
 
 			currentDt = currentDt.AddMonths(1);
 
@@ -645,34 +645,34 @@ namespace myfinAPI.Business
 			bool flag = false;
 			while (pastMonth>0)
 			{
-				curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Shares);
+				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Shares);
 				monthlyInv.Add(new Invstmnt()
 				{
 					AssetId = (int)AssetType.Shares,
-					Invested = curMonh.ToList()[0].Investment - prvMonthShrInv,
+					Invested = curMonh.Investment - prvMonthShrInv,
 					Month = currentDt.Month,
 					Year = currentDt.Year,
 					SectorInvstmt = SectorWiseInvestment(folioid, currentDt),
 					folioId = folioid
 				});
-				prvMonthShrInv = curMonh.ToList()[0].Investment;
+				prvMonthShrInv = curMonh.Investment;
 
 
-				curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Equity_MF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Equity_MF, Invested = curMonh.ToList()[0].Investment - prvMonthEqtMFInv, Month = currentDt.Month, Year = currentDt.Year });
-				prvMonthEqtMFInv = curMonh.ToList()[0].Investment;
+				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Equity_MF);
+				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Equity_MF, Invested = curMonh.Investment - prvMonthEqtMFInv, Month = currentDt.Month, Year = currentDt.Year });
+				prvMonthEqtMFInv = curMonh is null?0: curMonh.Investment;
 
-				curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Debt_MF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Debt_MF, Invested = curMonh.ToList()[0].Investment- prvMonthDbtMFInv, Month = currentDt.Month, Year = currentDt.Year });
-				prvMonthDbtMFInv = curMonh.ToList()[0].Investment;
+				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Debt_MF);
+				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Debt_MF, Invested = curMonh.Investment- prvMonthDbtMFInv, Month = currentDt.Month, Year = currentDt.Year });
+				prvMonthDbtMFInv = curMonh is null ? 0 : curMonh.Investment;
 
-				curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PF, Invested = curMonh.ToList()[0].Investment- prvMonthPFInv, Month = currentDt.Month, Year = currentDt.Year });
-				prvMonthPFInv = curMonh.ToList()[0].Investment;
+				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PF);
+				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PF, Invested = curMonh.Investment- prvMonthPFInv, Month = currentDt.Month, Year = currentDt.Year });
+				prvMonthPFInv = curMonh is null ? 0 : curMonh.Investment;
 
-				curMonh = astHistory.Where(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PPF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PPF, Invested =  curMonh.ToList()[0].Investment- prvMonthPPFInv, Month = currentDt.Month, Year = currentDt.Year });
-				prvMonthPPFInv = curMonh.ToList()[0].Investment;
+				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PPF);
+				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PPF, Invested =  curMonh.Investment- prvMonthPPFInv, Month = currentDt.Month, Year = currentDt.Year });
+				prvMonthPPFInv = curMonh is null ? 0 : curMonh.Investment;
 
 				currentDt =currentDt.AddMonths(1);
 				pastMonth--;
@@ -708,8 +708,8 @@ namespace myfinAPI.Business
 		public IList<AssetDistribution> GetAssetClassDistribution(int folioId)
 		{
 			IList<AssetDistribution> tranDetails = new List<AssetDistribution>();
-			List<portfolio> finalFolio = new List<portfolio>();
-			GetFolio(folioId, finalFolio, DateTime.UtcNow.Year);
+			List<Investment> finalFolio = new List<Investment>();
+			ComponentFactory.GetInvestHelperObj().GetFolioInvestments(folioId, finalFolio, DateTime.UtcNow.Year);
 			return null;
 		}
 		private IList<SectorAssetDistribution> SectorWiseInvestment(int folioId, DateTime time)
@@ -728,80 +728,135 @@ namespace myfinAPI.Business
 			//astHistory.where
 			return aggregatedInvestment;
 		}
-		public IList<SectorAssetDistribution> SectorWiseAssetDistribution(int folioId)
+		private void getSectorWiseDividend(IList<SectorAssetDistribution> sectrDistb, IList<EquityTransaction> eqtTran)
 		{
-			List<SectorAssetDistribution> tranDetails = new List<SectorAssetDistribution>();
-			List<portfolio> finalFolio = new List<portfolio>();
-			GetFolio(folioId, finalFolio,DateTime.UtcNow.Year);
-			foreach(portfolio p in finalFolio.Where(x=>x.eq.assetType==AssetType.Shares)) //only for shares
+			//var filterTran = eqtTran.OrderBy(x=>x.tranDate).ToList();
+			IList<string> uniqAssetID= new List<string>();
+		 
+			foreach(EquityTransaction eqtT in eqtTran.Where(x=>x.equity.assetType ==AssetType.Shares))
 			{
-				var item = tranDetails.Where(x => x.SectorName == p.eq.sector).ToList();
-				if(item != null && item.Count>0)
-				{
-					item[0].CurrentValue += p.eq.livePrice * p.qty;
-					item[0].Invested += p.avgprice * p.qty;
-					item[0].Dividend += p.dividend;
-				}
-				else
-				{
-					tranDetails.Add(new SectorAssetDistribution()
-					{
-						CurrentValue = p.eq.livePrice * p.qty,
-						SectorName = p.eq.sector,
-						Invested = p.qty * p.avgprice,
-						Dividend =p.dividend
-					});
-				}				
-			}
-			//tranDetails.ToList().Sort();
-			tranDetails.Sort(delegate (SectorAssetDistribution x, SectorAssetDistribution y) {
-				return x.CurrentValue.CompareTo(y.Invested);
-			});
-			return tranDetails;
-		}
-		public void GetFolio(int portfolioId, List<portfolio> finalFolio,int year)
-		{			
-			IList<EquityTransaction> tranDetails = new List<EquityTransaction>();			
-			ComponentFactory.GetMySqlObject().getTransactionDetails(portfolioId, tranDetails);
-			ComponentFactory.GetBondhelperObj().GetBondTransaction(portfolioId, tranDetails);
 
-			int counter = 0;
-			foreach (EquityTransaction eq in tranDetails)
-			{
-				var indx=finalFolio.FindIndex(x => x.eq.equityName == eq.equity.equityName);
-						 
-				if (indx < 0)
-				{
-					IEnumerable<EquityTransaction> selectedEqtTran = tranDetails.Where(x => x.equity.equityName == eq.equity.equityName && x.tranDate.Year <= year);
-					portfolio folio = new portfolio() {
-						eq = new EquityBase()
-						{
-							equityName = eq.equity.equityName,
-							assetId = eq.equity.assetId,
-							symbol = eq.equity.symbol,
-							livePrice = eq.equity.livePrice,
-							sector = eq.equity.sector,
-							MarketCap = eq.equity.MarketCap,
-							PB = eq.equity.PB,
-							assetType = eq.equity.assetType,
-							category = GetCategory(eq.equity.MarketCap) 
-						},
-						equityType = eq.equity.assetType,
-						trandate = eq.tranDate						 
-					};
-					GetXirrReturn(selectedEqtTran, eq, folio);
-					
-					if (folio.qty > 0)
-					{					 
-						finalFolio.Add(folio);
-					}
-					counter++;
+				if (uniqAssetID.Contains(eqtT.equity.assetId))
+					continue;
+				else
+					uniqAssetID.Add(eqtT.equity.assetId);
+
+				IList<SectorAssetDistribution> result = sectrDistb.Where(x => x.SectorName == eqtT.equity.sector).ToList();
+
+				foreach (dividend d in eqtT.equity.div)
+				{					
+					decimal divi= ComponentFactory.GetInvestHelperObj().GetNetAssetQty( d.dt,
+						eqtTran.Where(x=>x.equity.assetId==eqtT.equity.assetId).ToList(),eqtT.equity.assetId,0 );
+
+					result[0].Dividend += divi*d.divValue;									
 				}
 				
-			}
-			//GetBondinFolio(finalFolio, portfolioId);
+			}			 
+			 
+		 
 		}
-		private void GetBondinFolio(List<portfolio> finalFolio, int folioId)
+		public IList<SectorAssetDistribution> SectorWiseAssetDistribution(int folioId)
+		{
+			List<SectorAssetDistribution> sectorDetails = new List<SectorAssetDistribution>();
+			IList<EquityTransaction> eqtTran = new List<EquityTransaction>();
+			ComponentFactory.GetSnapshotObj().GetSectorWiseSnapshot(sectorDetails, folioId);
+			ComponentFactory.GetMySqlObject().getTransactionDetails(folioId, eqtTran);
+			
+			getSectorWiseDividend(sectorDetails, eqtTran);			 
+
+			return sectorDetails;			 
+		}
+		//public void GetFolio(int folioId, PortfolioNew finalFolio, int year)
+		//{
+		//	IList<EquityTransaction> tranDetails = new List<EquityTransaction>();
+		//	ComponentFactory.GetMySqlObject().getTransactionDetails(folioId, tranDetails);
+		//	ComponentFactory.GetBondhelperObj().GetBondTransaction(folioId, tranDetails);
+
+		//	int counter = 0;
+		//	foreach (EquityTransaction eqtran in tranDetails)
+		//	{
+		//		var indx = finalFolio.eq.Find(x=>x.equityName== eqtran.equity.equityName);
+
+		//		if (indx < 0)
+		//		{
+		//			IEnumerable<EquityTransaction> selectedEqtTran = tranDetails.Where(x => x.equity.equityName == eqtran.equity.equityName && x.tranDate.Year <= year);
+		//			portfolio folio = new portfolio()
+		//			{
+		//				eq = new EquityBase()
+		//				{
+		//					equityName = eqtran.equity.equityName,
+		//					assetId = eqtran.equity.assetId,
+		//					symbol = eqtran.equity.symbol,
+		//					livePrice = eqtran.equity.livePrice,
+		//					sector = eqtran.equity.sector,
+		//					MarketCap = eqtran.equity.MarketCap,
+		//					PB = eqtran.equity.PB,
+		//					assetType = eqtran.equity.assetType,
+		//					category = GetCategory(eqtran.equity.MarketCap)
+		//				},
+		//				equityType = eqtran.equity.assetType,
+		//				trandate = eqtran.tranDate
+		//			};
+		//			GetXirrReturn(selectedEqtTran, eqtran, folio);
+
+		//			if (folio.qty > 0)
+		//			{
+		//				finalFolio.Add(folio);
+		//			}
+		//			counter++;
+		//		}
+
+		//	}
+		//}
+		/// <summary>
+		/// This need to transitioned over to new Portfoli model object named PortfolioNew
+		/// </summary>
+		/// <param name="portfolioId"></param>
+		/// <param name="finalFolio"></param>
+		/// <param name="year"></param>
+		//public void GetFolioInvestments(int portfolioId, List<Investment> investments,int year)
+		//{			
+		//	IList<EquityTransaction> tranDetails = new List<EquityTransaction>();			
+		//	ComponentFactory.GetMySqlObject().getTransactionDetails(portfolioId, tranDetails);
+		//	ComponentFactory.GetBondhelperObj().GetBondTransaction(portfolioId, tranDetails);
+
+		//	int counter = 0;
+		//	foreach (EquityTransaction eq in tranDetails.Where(x=>x.equity.assetType==AssetType.Shares && x.tranDate.Year<=year))
+		//	{
+		//		var invstm=investments.FirstOrDefault(x => x.eq.equityName == eq.equity.equityName);
+						 
+		//		if (invstm != null)
+		//		{
+		//			IEnumerable<EquityTransaction> selectedEqtTran = tranDetails.Where(x => x.equity.equityName == eq.equity.equityName 
+		//			&& x.tranDate.Year <= year);
+		//			Investment invstms = new Investment() {
+		//				eq = new EquityBase()
+		//				{
+		//					equityName = eq.equity.equityName,
+		//					assetId = eq.equity.assetId,
+		//					symbol = eq.equity.symbol,
+		//					livePrice = eq.equity.livePrice,
+		//					sector = eq.equity.sector,
+		//					MarketCap = eq.equity.MarketCap,
+		//					PB = eq.equity.PB,
+		//					assetType = eq.equity.assetType,
+		//					category = GetCategory(eq.equity.MarketCap) 
+		//				},
+		//				equityType = eq.equity.assetType,
+		//				//trandate = eq.tranDate						 
+		//			};
+		//			GetXirrReturn(selectedEqtTran, invstms);
+					
+		//			if (invstms.qty > 0)
+		//			{					 
+		//				investments.Add(invstms);
+		//			}
+		//			counter++;
+		//		}
+		//	}
+		//	//GetBondinFolio(finalFolio, portfolioId);
+		//}
+		private void GetBondinFolio(List<Investment> finalFolio, int folioId)
 		{
 			IList<EquityTransaction> tranDetails = new List<EquityTransaction>();
 			ComponentFactory.GetBondhelperObj().GetBondTransaction(folioId, tranDetails);
@@ -810,30 +865,34 @@ namespace myfinAPI.Business
 			}
 		}
 
-		private double GetXirrReturn(IEnumerable<EquityTransaction> eqtTran, EquityTransaction eqLive, portfolio folio)
+		public double GetXirrReturn(IEnumerable<EquityTransaction> eqtTran,  Investment invst)
 		{
 			IList<CashItem> invstYear = new List<CashItem>();
-			double qty = 0, avgprice = 0;
+			decimal qty = 0, netInvst = 0, eqtLivePrice = 0;
+			string assetId=string.Empty;
 			foreach (EquityTransaction eqt in eqtTran)
 			{
+				eqtLivePrice = eqt.equity.livePrice;
+				assetId = eqt.equity.assetId;
+
 				if (eqt.tranType == TranType.Sell)
 				{
 					qty -= eqt.qty;
-					avgprice -= eqt.price * eqt.qty;
+					netInvst -= eqt.price * eqt.qty;
 					invstYear.Add(new CashItem()
 					{
 						Date = new DateTime(eqt.tranDate.Year, eqt.tranDate.Month, eqt.tranDate.Day),
-						Amount = eqt.price * eqt.qty
+						Amount = Convert.ToDouble(eqt.price * eqt.qty)
 					});
 				}
 				else
 				{
 					qty += eqt.qty;
-					avgprice += eqt.price * eqt.qty;
+					netInvst += eqt.price * eqt.qty;
 					invstYear.Add(new CashItem()
 					{
 						Date = new DateTime(eqt.tranDate.Year, eqt.tranDate.Month, eqt.tranDate.Day),
-						Amount = -eqt.price * eqt.qty
+						Amount = -Convert.ToDouble(eqt.price * eqt.qty)
 					});
 				}
 			}
@@ -841,24 +900,26 @@ namespace myfinAPI.Business
 			invstYear.Add(new CashItem()
 			{
 				Date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day),
-				Amount = eqLive.equity.livePrice * qty
+				Amount = Convert.ToDouble(eqtLivePrice * qty)
 			});
-			folio.qty = qty;
-			folio.avgprice= avgprice/qty;			
+			invst.qty = qty;
+
+			if(qty>0) //if net qty is more than 0
+				invst.avgprice= netInvst/qty;			
 			
-			folio.xirr = Xirr.RunScenario(invstYear)*100;
-			CalculateDividend(eqLive.equity.assetId, eqtTran, invstYear, folio);
+			invst.xirr = Xirr.RunScenario(invstYear)*100;
+			CalculateDividend(assetId, eqtTran, invstYear, invst);
 			//Need to remove dependency on folio for this function
 			return Xirr.RunScenario(invstYear);
 		}
-		public double CalculateDividend(string companyId, IEnumerable<EquityTransaction> t, IList<CashItem> invstYear, portfolio p)
+		public decimal CalculateDividend(string companyId, IEnumerable<EquityTransaction> t, IList<CashItem> invstYear, Investment p)
 		{
-			IList<dividend> divDetails = ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId);
-
-			double dividend = 0;double netDiv = 0;
+			//IList<dividend> divDetails = ComponentFactory.GetMySqlObject().GetCompanyDividend(companyId);
+			IList<dividend> divDetails = t.ToArray()[0].equity.div;
+			decimal dividend = 0;decimal netDiv = 0;
 			foreach (dividend div in divDetails)
 			{
-				double q = 0;
+				decimal q = 0;
 				foreach (EquityTransaction tran in t.Where(x => x.equity.assetId == companyId && x.tranDate < div.dt))
 				{
 					if (tran.tranType == TranType.Buy || tran.tranType ==TranType.Bonus)
@@ -874,11 +935,11 @@ namespace myfinAPI.Business
 					invstYear.Add(new CashItem()
 					{
 						Date = div.dt,
-						Amount = dividend
+						Amount = Convert.ToDouble(dividend)
 					});
 				}
 			}
-			p.DivReturnXirr = Xirr.RunScenario(invstYear)*100;
+			p.DivReturnXirr = Convert.ToDecimal(Xirr.RunScenario(invstYear))*100;
 			p.dividend = netDiv;
 			return netDiv;
 		}

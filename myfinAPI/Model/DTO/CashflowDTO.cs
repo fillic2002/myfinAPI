@@ -17,7 +17,7 @@ namespace myfinAPI.Model.DTO
 	public class AssetClassFlow
 	{
 		public AssetType Assettype { get; set; }
-		public double Cashflow { get; set; }
-		public double Dividend { get; set; }
+		public decimal Cashflow { get; set; }
+		public decimal Dividend { get; set; }
 	}
 }

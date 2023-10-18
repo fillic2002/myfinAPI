@@ -12,9 +12,9 @@ namespace myfinAPI.Model
 		public int folioId{ get; set; }
 		public int Year { get; set; }
 		public int Month { get; set; }
-		public double Invested { get; set; }
-		public double CurrentValue { get; set; }
-		public double currentYearProfit { get; set; }
+		public decimal Invested { get; set; }
+		public decimal CurrentValue { get; set; }
+		public decimal currentYearProfit { get; set; }
 		public IList<SectorAssetDistribution> SectorInvstmt{get; set;}
 
 	}

@@ -28,19 +28,19 @@ namespace myfinAPI.Controller
 		}
 
 		[HttpGet("search/{name}")]
-		public ActionResult<IEnumerable<ShareInfo>> search(string name)
+		public ActionResult<IEnumerable<EquityBase>> search(string name)
 		{
 			return ComponentFactory.GetMySqlObject().SearchShare(name).ToArray();		
 		}
 		[HttpGet("getdividend/{name}")]
-		public ActionResult<IEnumerable<dividend>> getdividend(string name)
+		public ActionResult<EquityBase> getdividend(string name)
 		{	
-			return ComponentFactory.GetEquityHelperObj().GetDividend(name).ToArray();
+			return ComponentFactory.GetEquityHelperObj().GetDividend(name);
 		}
 		[HttpGet("getYearlyCompDividend/{year}")]
-		public ActionResult<IEnumerable<portfolio>> getCompanyWisedividend(int year)
+		public ActionResult<IEnumerable<Investment>> getCompanyWisedividend(int year,int folioId)
 		{	
-			return ComponentFactory.GetEquityHelperObj().GetCompanyWiseDiv(year).ToArray();
+			return ComponentFactory.GetEquityHelperObj().GetCompanyWiseDiv(year, folioId).ToArray();
 		}
 	 
 		[HttpPost("updateequity")]

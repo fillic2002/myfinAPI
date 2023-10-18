@@ -14,9 +14,9 @@ namespace myfinAPI.Model
 		public int Month { get; set; }
 		public double Balance { get; set; }
 		public TranType TypeOfTransaction { get; set; }
-		public double InvestmentEmp { get; set; }
-		public double InvestmentEmplr { get; set; }
-		public double Pension { get; set; }
+		public decimal InvestmentEmp { get; set; }
+		public decimal InvestmentEmplr { get; set; }
+		public decimal Pension { get; set; }
 		public DateTime DateOfTransaction{ get; set; }
 		public AssetType AccountType { get; set; }
 
