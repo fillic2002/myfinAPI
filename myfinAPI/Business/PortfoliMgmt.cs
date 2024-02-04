@@ -659,19 +659,31 @@ namespace myfinAPI.Business
 
 
 				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Equity_MF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Equity_MF, Invested = curMonh.Investment - prvMonthEqtMFInv, Month = currentDt.Month, Year = currentDt.Year });
+				if (curMonh != null)
+				{
+					monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Equity_MF, Invested = curMonh.Investment - prvMonthEqtMFInv, Month = currentDt.Month, Year = currentDt.Year });
+				}
 				prvMonthEqtMFInv = curMonh is null?0: curMonh.Investment;
 
 				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.Debt_MF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Debt_MF, Invested = curMonh.Investment- prvMonthDbtMFInv, Month = currentDt.Month, Year = currentDt.Year });
+				if (curMonh != null)
+				{
+					monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.Debt_MF, Invested = curMonh.Investment - prvMonthDbtMFInv, Month = currentDt.Month, Year = currentDt.Year });
+				}
 				prvMonthDbtMFInv = curMonh is null ? 0 : curMonh.Investment;
 
 				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PF, Invested = curMonh.Investment- prvMonthPFInv, Month = currentDt.Month, Year = currentDt.Year });
+				if (curMonh != null)
+				{
+					monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PF, Invested = curMonh.Investment - prvMonthPFInv, Month = currentDt.Month, Year = currentDt.Year });
+				}
 				prvMonthPFInv = curMonh is null ? 0 : curMonh.Investment;
 
 				curMonh = astHistory.FirstOrDefault(x => x.month == currentDt.Month && x.year == currentDt.Year && x.Assettype == AssetType.PPF);
-				monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PPF, Invested =  curMonh.Investment- prvMonthPPFInv, Month = currentDt.Month, Year = currentDt.Year });
+				if (curMonh != null)
+				{
+					monthlyInv.Add(new Invstmnt() { AssetId = (int)AssetType.PPF, Invested = curMonh.Investment - prvMonthPPFInv, Month = currentDt.Month, Year = currentDt.Year });
+				}
 				prvMonthPPFInv = curMonh is null ? 0 : curMonh.Investment;
 
 				currentDt =currentDt.AddMonths(1);

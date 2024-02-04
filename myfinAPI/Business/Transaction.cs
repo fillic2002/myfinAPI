@@ -209,6 +209,10 @@ namespace myfinAPI.Business
 			Console.WriteLine(file);
 		}
 
+		public bool UpdateTransaction(EquityTransaction tran)
+		{
+			return ComponentFactory.GetMySqlObject().UpdateEquityTransaction(tran);
+		}
 		//public void GetAllTransaction(int folioId, IList<EquityTransaction> tranDetails)
 		//{	
 		//	ComponentFactory.GetMySqlObject().GetAllTransaction(folioId, tranDetails);

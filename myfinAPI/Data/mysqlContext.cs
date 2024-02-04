@@ -180,14 +180,16 @@ namespace myfinAPI.Data
 					if (portfolioId == 0)
 					{
 						 
-						command = new MySqlCommand(@"SELECT  ed.sector,et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol,et.tranid,et.transactionid
+						command = new MySqlCommand(@"SELECT  ed.sector,et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,
+							ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol,et.tranid,et.transactionid,et.verified
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on et.isin = ed.isin Order by et.transactiondate desc;", _conn);
 					}
 					else
 					{
-						command = new MySqlCommand(@"SELECT  ed.sector,et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol,et.tranid,et.transactionid
+						command = new MySqlCommand(@"SELECT  ed.sector,et.isin,et.portfolioId,et.transactiondate,et.qty,et.price,et.action,ed.name,
+								ed.assettypeid,et.pb as pb_tran,et.marketcap as mc_Tran,ed.symbol,et.tranid,et.transactionid,et.verified
 								FROM myfin.equitytransactions as et
 								join myfin.equitydetails ed
 								on et.isin=ed.isin Where et.portfolioid=" + portfolioId + " Order by et.transactiondate desc;", _conn);
@@ -228,8 +230,8 @@ namespace myfinAPI.Data
 									assetId = reader["isin"].ToString(),
 									assetType = (AssetType)Convert.ToInt32(reader["assettypeid"]),
 									sector = reader["sector"].ToString(),
-								}
-
+								},
+								verified = Convert.ToBoolean(reader["verified"])
 							});
 						}
 					}
@@ -464,11 +466,21 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"REPLACE INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate,PB,marketcap,tranid,openshare) 
+				using var command = new MySqlCommand(@"REPLACE INTO myfin.equitytransactions ( price, action,isin,qty,portfolioid,transactiondate,PB,marketcap,tranid,openshare,verified) 
 												VALUES ( " + tran.price + ",'" + (int)tran.tranType + "','" + tran.equity.assetId + "'," + tran.qty + "," + tran.portfolioId + ",'" 
-													+ dt + "',"+tran.equity.PB + ","+tran.equity.MarketCap + ",'"+ Guid.NewGuid() +"',"+tran.freefloat_tran+");", _conn);
+													+ dt + "',"+tran.equity.PB + ","+tran.equity.MarketCap + ",'"+ Guid.NewGuid() +"',"+tran.freefloat_tran+","+tran.verified +");", _conn);
 				int result = command.ExecuteNonQuery();
 			}
+			return true;
+		}
+		public bool UpdateEquityTransaction(EquityTransaction tran)
+		{
+			if(tran.PB_Tran > 0)
+				 UpdateField("myfin.equitytransactions",new string[] { "isin", "tranId" },new object[] {tran.equity.assetId,tran.tranId}  , "PB", tran.PB_Tran);
+			if(tran.price>0)
+				 UpdateField("myfin.equitytransactions", new string[] { "isin", "tranId" }, new object[] { tran.equity.assetId, tran.tranId }, "price", tran.price);
+			
+			UpdateField("myfin.equitytransactions", new string[] { "isin", "tranId" }, new object[] { tran.equity.assetId, tran.tranId }, "verified", tran.verified);
 			return true;
 		}
 		public bool TransactionVerified(EquityTransaction tran)
@@ -501,7 +513,7 @@ namespace myfinAPI.Data
 			{
 				_conn.Open();
 				string dt = tran.tranDate.ToString("yyyy-MM-dd");
-				using var command = new MySqlCommand(@"DELETE FROM myfin.equitytransactions WHERE ISIN='" + tran.equity.assetId + "' AND transactiondate='" + dt + "';", _conn);
+				using var command = new MySqlCommand(@"DELETE FROM myfin.equitytransactions WHERE tranid='" + tran.tranId + "';", _conn);
 				int result = command.ExecuteNonQuery();
 			}
 			return true;
@@ -613,7 +625,7 @@ namespace myfinAPI.Data
 			}
 			return true;
 		}
-		public bool UpdateEquityDetails(ShareInfo e)
+		public bool UpdateEquityDetails(EquityBase e)
 		{
 			if (e is null)
 			{
@@ -623,10 +635,11 @@ namespace myfinAPI.Data
 			using (MySqlConnection _conn = new MySqlConnection(connString))
 			{
 				_conn.Open();
-				using var command = new MySqlCommand(@"REPLACE myfin.equitydetails SET description = '" + e.desc + "'," +
-									" divlink ='" + e.divlink + "'," +
-									"Symbol='"+e.shortName+"'," +
-									"sector='"+e.sector+"',name='"+e.fullName+"', ISIN= '" + e.id + "',assettypeid=1;", _conn);
+				using var command = new MySqlCommand(@"UPDATE myfin.equitydetails SET description = '" + e.sourceurl + "'," +
+									" divlink ='" + e.divUrl + "'," +
+									"Symbol='"+e.symbol+"'," +
+									"sector='"+e.sector+"',name='"+e.equityName+"',assettypeid=1" +
+									" where ISIN='" +e.assetId +"';", _conn);
 
 				int result = command.ExecuteNonQuery(); 
 			}
@@ -876,7 +889,7 @@ namespace myfinAPI.Data
 				_conn.Open();
 
 				using var command = new MySqlCommand(@"select * from myfin.dividend
-							where isin='" + assetId + "';", _conn);
+							where isin='" + assetId + "' AND typeofcredit in (10,11,12);", _conn);
 				var reader = command.ExecuteReader();
 
 				while (reader.Read())
@@ -1550,6 +1563,73 @@ namespace myfinAPI.Data
 
 		}
 
-		
+		#region Generic function
+		public bool UpdateField<T>(string tableName, string[] primaryKeyColumnNames, object[] primaryKeyValues, string fieldName, T newValue)
+		{
+			if (primaryKeyColumnNames.Length != primaryKeyValues.Length)
+			{
+				throw new ArgumentException("Number of primary key column names must match the number of primary key values.");
+			}
+
+			using (MySqlConnection connection = new MySqlConnection(connString))
+			{
+				connection.Open();
+
+				using (MySqlCommand command = connection.CreateCommand())
+				{
+					string whereClause = string.Join(" AND ", primaryKeyColumnNames.Select((col, index) => $"{col} = @PrimaryKeyValue{index}"));
+					command.CommandText = $"UPDATE {tableName} SET {fieldName} = @NewValue WHERE {whereClause}";
+
+					// Add parameters to prevent SQL injection
+					command.Parameters.Add("@NewValue", GetMySqlDbType<T>()).Value = newValue;
+					for (int i = 0; i < primaryKeyValues.Length; i++)
+					{
+						if (primaryKeyValues[i] is DateTime)
+						{
+							command.Parameters.Add($"@PrimaryKeyValue{i}", MySqlDbType.DateTime).Value = primaryKeyValues[i];
+						}
+						else
+						{
+							command.Parameters.Add($"@PrimaryKeyValue{i}", MySqlDbType.VarChar).Value = primaryKeyValues[i];
+						}
+					}
+					try
+					{
+						command.ExecuteNonQuery();
+					}
+					catch(Exception ex)
+					{
+						string s = ex.StackTrace;
+						return false;
+					}
+					return true;
+				}
+			}
+			return false;
+		}
+		private MySqlDbType GetMySqlDbType<T>()
+		{
+			// Add more type mappings as needed
+			if (typeof(T) == typeof(int))
+			{
+				return MySqlDbType.Int32;
+			}
+			else if (typeof(T) == typeof(string))
+			{
+				return MySqlDbType.VarChar;
+			}
+			else if (typeof(T) == typeof(decimal))
+			{
+				return MySqlDbType.Decimal;
+			}
+			else if (typeof(T) == typeof(Nullable<bool>))
+			{
+				return MySqlDbType.Bool;
+			}
+			// Handle other data types as needed
+
+			throw new NotSupportedException($"Type {typeof(T).Name} is not supported.");
+		}
+		#endregion
 	}
 }

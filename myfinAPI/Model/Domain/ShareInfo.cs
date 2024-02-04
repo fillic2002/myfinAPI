@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace myfinAPI.Model
 {
+	//need to replace this with equity base class
 	public class ShareInfo
 	{
 		public string id { get; set; }

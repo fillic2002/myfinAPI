@@ -35,10 +35,17 @@ namespace myfinAPI.Business
 
 			return false;
 		}
+		public bool UpdateTransaction(EquityTransaction tran)
+		{
+			if (tran.tranId != null)
+				return ComponentFactory.GetMySqlObject().UpdateEquityTransaction(tran);
+
+			return false;
+		}
 		public EquityBase GetDividend(string eqtName)
 		{
-			IList<dividend> eqtDetails = new List<dividend>();
-			IList<dividend> eqtNewDetails = new List<dividend>();
+			//IList<dividend> eqtDetails = new List<dividend>();
+			//IList<dividend> eqtNewDetails = new List<dividend>();
 
 			EquityBase eq = new EquityBase() { assetId = eqtName };
 			
@@ -95,7 +102,7 @@ namespace myfinAPI.Business
 			IList<dividend> eqtDivDetails = new List<dividend>();
 			IList<EquityTransaction> eqtTran = new List<EquityTransaction>();
 			List<Investment> invstments = new List<Investment>();
-			 
+			List<Investment> CurrYearInvstments = new List<Investment>();
 
 			ComponentFactory.GetInvestHelperObj().GetFolioInvestments(0, invstments, year);
 			ComponentFactory.GetMySqlObject().getTransactionDetails(0, eqtTran);
@@ -105,16 +112,20 @@ namespace myfinAPI.Business
 				decimal divi = 0;
 				foreach (dividend d in invst.eq.div.Where(x=>x.dt.Year ==year) )
 				{
-					if (d.creditType == TranType.FinalDividend || d.creditType == TranType.InterDividend || d.creditType == TranType.SpclDividend)
+					if (d.creditType == TranType.FinalDividend || d.creditType == TranType.InterDividend || 
+						d.creditType == TranType.SpclDividend)
 					{
-						divi += Convert.ToDecimal(d.divValue * ComponentFactory.GetInvestHelperObj().GetNetAssetQty(d.dt, eqtTran.Where(x=>x.equity.assetId==invst.eq.assetId).ToList(),invst.eq.assetId,invst.folioID));
+						divi += Convert.ToDecimal(d.divValue * ComponentFactory.GetInvestHelperObj().GetNetAssetQty(d.dt,
+							eqtTran.Where(x=>x.equity.assetId==invst.eq.assetId).ToList(),invst.eq.assetId,invst.folioID));
 						invst.dividend = divi;
 						//p.trandate = d.dt;
+						CurrYearInvstments.Add(invst);
 					}
+
 				}
 			}
 			 
-			return invstments;
+			return CurrYearInvstments;
 		}
 	}
 }

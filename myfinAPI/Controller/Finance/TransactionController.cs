@@ -77,6 +77,11 @@ namespace myfinAPI.Controller
 		{
 			return ComponentFactory.GetEquityHelperObj().VerifyTransaction(tran);
 		}
+		[HttpPost("updateTransaction")]
+		public ActionResult<bool> UpdateTransaction(EquityTransaction tran)
+		{
+			return ComponentFactory.GetEquityHelperObj().UpdateTransaction(tran);
+		}
 
 		[HttpPost("AddBankTransaction")]
 		public ActionResult<bool> PostBankTransaction(BankTransaction tran)
@@ -101,7 +106,7 @@ namespace myfinAPI.Controller
 			ComponentFactory.GetBondhelperObj().GetBondTransaction(folioId, tran);
 			return tran.ToArray();
 		}
-		[HttpPost("UploadTransactionFile/{folioId}")]
+		[HttpPost("UploadTransactionFile/{file}/{folioId}")]
 		public ActionResult<bool> UploadTranFile(int folioId, Microsoft.AspNetCore.Http.IFormFile file)
 		{
 			IList<EquityTransaction> tran = new List<EquityTransaction>();

@@ -21,7 +21,7 @@ namespace myfinAPI.Model
 		public decimal PB_Tran { get; set; }
 		public decimal MarketCap_Tran { get; set; }
 		public bool? verified { get; set; }
-		public int id { get; set; }
+		public int id { get; set; } // This need to retire as this is been overtaken by tranId
 		public Guid tranId { get; set; }
 
 	}

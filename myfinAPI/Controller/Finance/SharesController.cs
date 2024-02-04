@@ -44,7 +44,7 @@ namespace myfinAPI.Controller
 		}
 	 
 		[HttpPost("updateequity")]
-		public bool updateEquity(ShareInfo shrDetail)
+		public bool updateEquity(EquityBase shrDetail)
 		{
 			return ComponentFactory.GetMySqlObject().UpdateEquityDetails(shrDetail);
 			 

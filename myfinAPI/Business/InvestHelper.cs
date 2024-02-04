@@ -34,7 +34,6 @@ namespace myfinAPI.Business
 				}
 				else
 				{
-
 					v= new Investment()
 					{
 						eq = new EquityBase()
